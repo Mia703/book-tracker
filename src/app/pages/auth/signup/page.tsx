@@ -17,8 +17,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function Signup() {
-	const [alert, setAlert] = useState("");
-	const router = useRouter();
+  const [alert, setAlert] = useState("");
+  const router = useRouter();
 
   const formik = useFormik({
     initialValues: {
@@ -27,42 +27,42 @@ export default function Signup() {
       email: "",
     },
     onSubmit: async (values) => {
+      if (values.firstName !== "" && values.lastName !== "") {
+        const response = await fetch("/pages/api/auth/signup", {
+          method: "POST",
+          headers: { "Content-type": "application/json" },
+          body: JSON.stringify({
+            firstName: values.firstName,
+            lastName: values.lastName,
+            email: values.email,
+          }),
+        });
 
-			if (values.firstName !== "" && values.lastName !== "") {
-				
-				const response = await fetch('/pages/api/auth/signup', {
-					method: 'POST',
-					headers: {'Content-type': 'application/json'},
-					body: JSON.stringify({
-						firstName: values.firstName,
-						lastName: values.lastName,
-						email: values.email
-					})
-				})
+        if (response.ok) {
+          window.sessionStorage.setItem(
+            "user",
+            JSON.stringify({
+              firstName: values.firstName,
+              lastName: values.lastName,
+              email: values.email,
+            }),
+          );
 
-				if (response.ok) {
-					window.sessionStorage.setItem('user', JSON.stringify({
-						firstName: values.firstName,
-						lastName: values.lastName,
-						email: values.email
-					}))
-          
-					router.push('/pages/library');
-				}
-				else {
-					const data = await response.json();
-					setAlert(data.message);
-					console.error(`Error ${response.status}`, data.message)
-				}
-			}
-		},
+          router.push("/pages/library");
+        } else {
+          const data = await response.json();
+          setAlert(data.message);
+          console.error(`Error ${response.status}`, data.message);
+        }
+      }
+    },
   });
 
   return (
     <MainGrid>
       <section
         id="login"
-        className="col-span-4 flex h-dvh flex-col content-center justify-center p-4 md:col-span-6"
+        className="col-span-4 flex h-dvh flex-col content-center justify-center p-4 md:col-start-2 lg:col-start-5"
       >
         <Card className="bg-primary-light-pink">
           <CardHeader>
@@ -103,7 +103,7 @@ export default function Signup() {
               />
               <Button
                 type="submit"
-                className="my-4 w-full hover:cursor-pointer"
+                className="pink my-4 w-full hover:cursor-pointer"
               >
                 Signup
               </Button>

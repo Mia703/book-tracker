@@ -45,7 +45,7 @@ export default function Home() {
             email: values.email,
           }),
         );
-        
+
         router.push("/pages/library");
       } else {
         setAlert(data.message.message);
@@ -58,7 +58,7 @@ export default function Home() {
     <MainGrid>
       <section
         id="login"
-        className="col-span-4 flex h-dvh flex-col content-center justify-center p-4 md:col-span-6"
+        className="col-span-4 flex h-dvh flex-col content-center justify-center p-4 md:col-start-2 lg:col-start-5"
       >
         <Card className="bg-primary-light-pink">
           <CardHeader>
@@ -80,7 +80,7 @@ export default function Home() {
               />
               <Button
                 type="submit"
-                className="my-4 w-full hover:cursor-pointer"
+                className="pink my-4 w-full hover:cursor-pointer"
               >
                 Login
               </Button>

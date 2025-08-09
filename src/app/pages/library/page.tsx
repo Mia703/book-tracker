@@ -1,87 +1,55 @@
 "use client";
 import MainGrid from "@/app/components/MainGrid";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useFormik } from "formik";
-import { LogOut, Search } from "lucide-react";
-import { useRouter } from "next/navigation";
+import SearchBar from "@/app/components/SearchBar";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@radix-ui/react-accordion";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
 export default function Library() {
-  const [searchToggle, setSearchToggle] = useState<boolean>(false);
-
-  const router = useRouter();
-
-  const formik = useFormik({
-    initialValues: {
-      search: "",
-    },
-    onSubmit: (values) => {
-      if (values.search !== "") {
-        const searchInput = values.search
-          .replaceAll(" ", "+")
-          .replaceAll("'", "%0027");
-        console.log(searchInput);
-      }
-
-      setSearchToggle(!searchToggle);
-    },
-  });
+  const readingTypes = ["reading", "wish list", "finished", "dnf"];
+  const [toggleTrigger, setToggleTrigger] = useState<boolean>(false);
 
   return (
     <MainGrid>
+      <SearchBar />
+
       <section
-        id="search-bar-section"
-        className="col-span-4 p-4 md:col-span-6 lg:col-span-12"
+        id="accordion-section"
+        className="col-span-4 md:col-span-6 lg:col-span-12"
       >
-        <div className="flex flex-row justify-between gap-4">
-          <div className="search-wrapper w-full">
-            <form
-              action=""
-              method="post"
-              onSubmit={formik.handleSubmit}
-              className="mr-4 flex w-full flex-row"
-            >
-              <Input
-                type="search"
-                name="search"
-                id="search-bar"
-                placeholder="Search..."
-                className={
-                  searchToggle
-                    ? "bg-primary-light-pink border-primary-dark-pink relative rounded-r-none rounded-bl-none border-2"
-                    : "bg-primary-light-pink border-primary-dark-pink rounded-r-none border-2"
-                }
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                value={formik.values.search}
-              />
-              <Button
-                className={
-                  searchToggle
-                    ? "rounded-l-none rounded-br-none hover:cursor-pointer"
-                    : "rounded-l-none hover:cursor-pointer"
-                }
-                type="submit"
-              >
-                <Search />
-              </Button>
-            </form>
-            {searchToggle && (
-              <div className="search-results bg-primary-light-pink border-primary-dark-pink z-10 border-r-2 border-b-2 border-l-2 p-4 shadow-md">
-                <p>hello world</p>
-              </div>
-            )}
-          </div>
-          <Button
-            type="button"
-            onClick={() => {
-              window.sessionStorage.removeItem("user");
-              router.push("/");
-            }}
-          >
-            Logout <LogOut />
-          </Button>
+        <div className="accordion-wrapper w-full">
+          <Accordion type="single" collapsible defaultValue="accordion-item-0">
+            {readingTypes.map((type, index) => (
+              <AccordionItem key={index} value={`accordion-item-${index}`}>
+                <AccordionTrigger
+                  className="w-full cursor-pointer p-4"
+                  onClick={() => {
+                    // TODO: how do I only change the accordion item I clicked rather than all of them?
+                    setToggleTrigger(!toggleTrigger);
+                  }}
+                >
+                  <div className="flex flex-row justify-between">
+                    <h2 className="capitalize">{type}</h2>
+
+                    {toggleTrigger ? (
+                      <ChevronRight className="text-primary-dark-pink" />
+                    ) : (
+                      <ChevronDown className="text-primary-dark-pink" />
+                    )}
+                  </div>
+                </AccordionTrigger>
+                <hr className="border-primary-dark-pink border-2" />
+                <AccordionContent className="p-4">
+                  Insert books component here
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
       </section>
     </MainGrid>

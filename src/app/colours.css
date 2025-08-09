@@ -21,14 +21,17 @@ body {
 
 /* =================== font styles =================== */
 
-h1 {
+h1, h2 {
 	color: var(--color-primary-dark-pink);
 }
 
-button {
+button.pink {
 	background-color: var(--color-primary-dark-pink);
-	color: var(--color-primary-light-pink);
-	cursor: pointer;
+	transition: background-color 300ms ease-out;
+}
+
+button.pink:hover {
+	background-color: #771534;
 }
 /* =================== constants =================== */
 
