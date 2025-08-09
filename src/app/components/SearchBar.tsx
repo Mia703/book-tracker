@@ -11,17 +11,42 @@ export default function SearchBar() {
 
   const router = useRouter();
 
-	function formatSearch(search: string) {
-		return search.replaceAll("'", "%27").replaceAll("!", "%21").replaceAll(":", "%3A");
-	}
+  function formatSearch(searchInput: string) {
+    return (
+      searchInput
+        // replace punctuation/currency/symbols with %XX
+        .replace(/[\p{P}\p{S}]/gu, (char) => {
+          const code = char.codePointAt(0);
+          return `%${code?.toString(16).toUpperCase().padStart(2, "0")}`;
+        })
+        // replace spaces between characters with +
+        .replace(/(?<=\S) +(?=\S)/g, "+").toLowerCase()
+    );
+  }
 
   const formik = useFormik({
     initialValues: {
       search: "",
     },
-    onSubmit: (values) => {
+    onSubmit: async (values) => {
       if (values.search !== "") {
         console.log(formatSearch(values.search));
+
+        const response = await fetch(
+          `https://www.googleapis.com/books/v1/volumes?q=${formatSearch(values.search)}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`,
+          {
+            method: "GET",
+            headers: { "Content-type": "application/json" },
+          },
+        );
+
+        if (response.ok) {
+          // TODO: do something...
+          const data = await response.json();
+          console.log(data)
+        } else {
+          // TODO: do something...
+        }
       }
 
       setSearchToggle(!searchToggle);
@@ -34,7 +59,7 @@ export default function SearchBar() {
       className="col-span-4 p-4 md:col-span-6 lg:col-span-12"
     >
       <div className="flex flex-row justify-between gap-4">
-        <div className="search-wrapper w-full">
+        <div className="search-wrapper relative w-full">
           <form
             action=""
             method="post"
@@ -67,7 +92,7 @@ export default function SearchBar() {
             </Button>
           </form>
           {searchToggle && (
-            <div className="search-results bg-primary-light-pink border-primary-dark-pink z-10 border-r-2 border-b-2 border-l-2 p-4 shadow-md">
+            <div className="search-results bg-primary-light-pink border-primary-dark-pink fixed left-0 z-10 mx-4 w-full border-r-2 border-b-2 border-l-2 p-4 shadow-md">
               <p>hello world</p>
             </div>
           )}
