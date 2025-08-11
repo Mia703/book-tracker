@@ -16,7 +16,7 @@ export default function Library() {
         className="col-span-4 md:col-span-6 lg:col-span-12"
       >
         <div className="accordion-wrapper w-full">
-          <Accordion type="single" collapsible>
+          <Accordion type="single" collapsible defaultValue="accordion-item-0">
             {/* accordion items - option 1*/}
             {/* {dropdownList.map((item, index) => (
               <Dropdown name={item} index={index} key={index}>animals</Dropdown>

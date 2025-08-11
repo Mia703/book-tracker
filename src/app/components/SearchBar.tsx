@@ -1,32 +1,22 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Book, GoogleBooksResponse } from "@/types/types";
+import { Book, GoogleBooksResponse } from "@/app/types/types";
 import { useFormik } from "formik";
 import { LogOut, Plus, Search } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { formatSearch } from "../utils/utils";
+import BookModal from "./BookModal";
 
 export default function SearchBar() {
-  const [searchToggle, setSearchToggle] = useState<boolean>(false);
   const [bookResults, setBookResults] = useState<Book[] | null>(null);
+  const [searchToggle, setSearchToggle] = useState<boolean>(false);
+  const [displayModal, setDisplayModal] = useState<boolean>(false);
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
   const router = useRouter();
-
-  function formatSearch(searchInput: string) {
-    return (
-      searchInput
-        // replace punctuation/currency/symbols with %XX
-        .replace(/[\p{P}\p{S}]/gu, (char) => {
-          const code = char.codePointAt(0);
-          return `%${code?.toString(16).toUpperCase().padStart(2, "0")}`;
-        })
-        // replace spaces between characters with +
-        .replace(/(?<=\S) +(?=\S)/g, "+")
-        .toLowerCase()
-    );
-  }
 
   const formik = useFormik({
     initialValues: {
@@ -34,8 +24,6 @@ export default function SearchBar() {
     },
     onSubmit: async (values) => {
       if (values.search !== "") {
-        // console.log(formatSearch(values.search));
-
         const response = await fetch(
           `https://www.googleapis.com/books/v1/volumes?q=${formatSearch(values.search)}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`,
           {
@@ -47,10 +35,8 @@ export default function SearchBar() {
         if (response.ok) {
           const data = await response.json();
 
-          console.log("data", data);
-
           const booksList: Book[] = (data as GoogleBooksResponse).items
-            .slice(0, 3)
+            .slice(0, 5)
             .map((item) => {
               const bookInfo = item.volumeInfo;
 
@@ -67,8 +53,7 @@ export default function SearchBar() {
                 publisher: bookInfo.publisher,
               };
             });
-
-          // console.log(booksList);
+          console.log(booksList);
           setBookResults(booksList);
           setSearchToggle(true);
         } else {
@@ -83,8 +68,8 @@ export default function SearchBar() {
       id="search-bar-section"
       className="col-span-4 p-4 md:col-span-6 lg:col-span-12"
     >
-      <div className="flex flex-row justify-between gap-4">
-        <div className="search-wrapper relative w-full">
+      <div className="search-bar-wrapper grid w-full grid-cols-2 justify-end gap-4 md:flex">
+        <div className="search-wrapper relative col-span-2 row-2 w-full">
           <form
             action=""
             method="post"
@@ -119,34 +104,42 @@ export default function SearchBar() {
           </form>
           {searchToggle && (
             <div
-              className="search-results bg-primary-light-pink border-primary-dark-pink absolute left-0 z-10 flex flex-col gap-4 scroll-auto border-r-2 border-b-2 border-l-2 p-4 shadow-md"
+              className="search-results-wrapper bg-primary-light-pink border-primary-dark-pink absolute left-0 z-10 flex h-[75vh] flex-col gap-4 overflow-y-scroll rounded-b-md border-r-2 border-b-2 border-l-2 p-4 shadow-md"
               style={{ width: "100%" }}
             >
               {bookResults &&
                 bookResults.map((book, index) => (
                   <div
                     key={index}
-                    className="flex flex-row items-center gap-4"
+                    className="book-results-wrapper flex cursor-pointer flex-row items-center justify-start gap-4"
                     onClick={() => {
-                      console.log("clicked selected book");
+                      setSelectedBook(bookResults[index]);
+                      setSearchToggle(false);
+                      setDisplayModal(true);
                     }}
                   >
-                    <div className="book-image-wrapper w-[15%]">
+                    <div className="book-image-wrapper h-full max-w-[100px] min-w-[80px] md:w-[100px]">
                       {book.imageLinks?.smallThumbnail ? (
                         <Image
                           src={book.imageLinks?.smallThumbnail}
                           alt={`${book.title}`}
                           width={128}
-                          height={205}
+                          height={192}
+                          className="book-image h-full w-full"
                         />
                       ) : (
-                        <div>No image available</div>
+                        <div className="book-image border-primary-black max-w-[100px] min-w-[80px] border-1 p-2 md:w-[100px]">
+                          No image available
+                        </div>
                       )}
                     </div>
 
                     <p>
-                      {book.title}: {book.subtitle}{" "}
-                      {book.authors ? `by ${book.authors[0]}` : ""}
+                      <span className="font-bold capitalize">
+                        {book.title}
+                        {book.subtitle ? `: ${book.subtitle}` : ""}
+                      </span>{" "}
+                      {book.authors ? `by ${book.authors.join(", ")}` : ""}
                     </p>
                   </div>
                 ))}
@@ -154,27 +147,35 @@ export default function SearchBar() {
           )}
         </div>
 
-        <Button
-          type="button"
-          className="pink cursor-pointer"
-          onClick={() => {
-            // TODO: open add book modal
-          }}
-        >
-          <Plus />
-        </Button>
-
-        <Button
-          type="button"
-          className="pink cursor-pointer"
-          onClick={() => {
-            window.sessionStorage.removeItem("user");
-            router.push("/");
-          }}
-        >
-          Logout <LogOut />
-        </Button>
+        <div className="buttons-wrapper col-span-2 row-1 flex flex-row justify-end gap-4">
+          <Button
+            type="button"
+            className="add-book-btn pink cursor-pointer"
+            onClick={() => {
+              setDisplayModal(true);
+            }}
+          >
+            <Plus />
+          </Button>
+          <Button
+            type="button"
+            className="logout-btn pink cursor-pointer"
+            onClick={() => {
+              window.sessionStorage.removeItem("user");
+              router.push("/");
+            }}
+          >
+            Logout <LogOut />
+          </Button>
+        </div>
       </div>
+      {displayModal && selectedBook && (
+        <BookModal
+          book={selectedBook}
+          setDisplayModal={setDisplayModal}
+          setSearchToggle={setSearchToggle}
+        />
+      )}
     </section>
   );
 }
