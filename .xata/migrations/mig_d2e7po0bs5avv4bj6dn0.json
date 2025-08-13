@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_d2e7po0bs5avv4bj6dn0",
+    "operations": [
+      {
+        "add_column": {
+          "table": "Books",
+          "column": {
+            "name": "endDate",
+            "type": "timestamptz",
+            "comment": "",
+            "nullable": true
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_d2e7po0bs5avv4bj6dn0",
+  "parent": "mig_d2e7p4fct945lrariktg",
+  "schema": "public",
+  "startedAt": "2025-08-13T11:54:09.609607Z"
+}

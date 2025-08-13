@@ -53,7 +53,7 @@ export default function SearchBar() {
                 publisher: bookInfo.publisher,
               };
             });
-          console.log(booksList);
+
           setBookResults(booksList);
           setSearchToggle(true);
         } else {
@@ -172,6 +172,7 @@ export default function SearchBar() {
       {displayModal && selectedBook && (
         <BookModal
           book={selectedBook}
+          displayUserInfo={false}
           setDisplayModal={setDisplayModal}
           setSearchToggle={setSearchToggle}
         />

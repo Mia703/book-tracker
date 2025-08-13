@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_d2dk8dvct945lrarijkg",
+    "operations": [
+      {
+        "add_column": {
+          "up": "''",
+          "table": "Books",
+          "column": {
+            "name": "readingProgress",
+            "type": "text",
+            "comment": ""
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_d2dk8dvct945lrarijkg",
+  "parent": "mig_d2dk5d1abui1ml6v74c0",
+  "schema": "public",
+  "startedAt": "2025-08-12T13:40:08.049572Z"
+}

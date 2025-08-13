@@ -1,0 +1,25 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_d2e9457ct945lraril4g",
+    "operations": [
+      {
+        "add_column": {
+          "up": "''",
+          "table": "Books",
+          "column": {
+            "name": "isbn",
+            "type": "text",
+            "unique": true,
+            "comment": ""
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_d2e9457ct945lraril4g",
+  "parent": "mig_d2e93gnct945lraril20",
+  "schema": "public",
+  "startedAt": "2025-08-13T13:24:37.10211Z"
+}
