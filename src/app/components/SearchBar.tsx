@@ -1,20 +1,20 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Book, GoogleBooksResponse } from "@/app/types/types";
+import { Book } from "@/app/types/types";
 import { useFormik } from "formik";
 import { LogOut, Plus, Search } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { formatSearch } from "../utils/utils";
+import { searchBooks_Top5 } from "../utils/utils";
 import BookModal from "./BookModal";
+import SearchBarResults from "./SearchBarResults";
 
 export default function SearchBar() {
   const [bookResults, setBookResults] = useState<Book[] | null>(null);
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [searchToggle, setSearchToggle] = useState<boolean>(false);
   const [displayModal, setDisplayModal] = useState<boolean>(false);
-  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
   const router = useRouter();
 
@@ -24,41 +24,9 @@ export default function SearchBar() {
     },
     onSubmit: async (values) => {
       if (values.search !== "") {
-        const response = await fetch(
-          `https://www.googleapis.com/books/v1/volumes?q=${formatSearch(values.search)}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`,
-          {
-            method: "GET",
-            headers: { "Content-type": "application/json" },
-          },
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-
-          const booksList: Book[] = (data as GoogleBooksResponse).items
-            .slice(0, 5)
-            .map((item) => {
-              const bookInfo = item.volumeInfo;
-
-              return {
-                title: bookInfo.title,
-                subtitle: bookInfo.subtitle,
-                authors: bookInfo.authors,
-                description: bookInfo.description,
-                categories: bookInfo.categories,
-                imageLinks: bookInfo.imageLinks,
-                industryIdentifiers: bookInfo.industryIdentifiers,
-                pageCount: bookInfo.pageCount,
-                publishedDate: bookInfo.publishedDate,
-                publisher: bookInfo.publisher,
-              };
-            });
-
-          setBookResults(booksList);
-          setSearchToggle(true);
-        } else {
-          // TODO: do something...
-        }
+        const response = await searchBooks_Top5(values.search);
+        setBookResults(response);
+        setSearchToggle(true);
       }
     },
   });
@@ -103,47 +71,22 @@ export default function SearchBar() {
             </Button>
           </form>
           {searchToggle && (
-            <div
-              className="search-results-wrapper bg-primary-light-pink border-primary-dark-pink absolute left-0 z-10 flex h-[75vh] flex-col gap-4 overflow-y-scroll rounded-b-md border-r-2 border-b-2 border-l-2 p-4 shadow-md"
-              style={{ width: "100%" }}
-            >
-              {bookResults &&
-                bookResults.map((book, index) => (
-                  <div
-                    key={index}
-                    className="book-results-wrapper flex cursor-pointer flex-row items-center justify-start gap-4"
-                    onClick={() => {
-                      setSelectedBook(bookResults[index]);
-                      setSearchToggle(false);
-                      setDisplayModal(true);
-                    }}
-                  >
-                    <div className="book-image-wrapper h-full max-w-[100px] min-w-[80px] md:w-[100px]">
-                      {book.imageLinks?.smallThumbnail ? (
-                        <Image
-                          src={book.imageLinks?.smallThumbnail}
-                          alt={`${book.title}`}
-                          width={128}
-                          height={192}
-                          className="book-image h-full w-full"
-                        />
-                      ) : (
-                        <div className="book-image border-primary-black max-w-[100px] min-w-[80px] border-1 p-2 md:w-[100px]">
-                          No image available
-                        </div>
-                      )}
-                    </div>
+            <SearchBarResults
+              bookResults={bookResults}
+              setSelectedBook={setSelectedBook}
+              setSearchToggle={setSearchToggle}
+              setDisplayModal={setDisplayModal}
+            />
+          )}
 
-                    <p>
-                      <span className="font-bold capitalize">
-                        {book.title}
-                        {book.subtitle ? `: ${book.subtitle}` : ""}
-                      </span>{" "}
-                      {book.authors ? `by ${book.authors.join(", ")}` : ""}
-                    </p>
-                  </div>
-                ))}
-            </div>
+          {/* click on anything below the search bar to close the search results modal */}
+          {searchToggle && (
+            <div
+              className="search-results-background fixed left-0 h-[100vh] w-[100vw]"
+              onClick={() => {
+                setSearchToggle(false);
+              }}
+            ></div>
           )}
         </div>
 

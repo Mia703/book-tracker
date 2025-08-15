@@ -11,9 +11,11 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormik } from "formik";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import * as Yup from "yup";
 import { Book } from "../types/types";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Check, X } from "lucide-react";
 
 type BookFormProps = {
   book: Book;
@@ -21,6 +23,48 @@ type BookFormProps = {
 };
 
 export default function BookForm({ book, setUserInfo }: BookFormProps) {
+  const [displayAlert, setDisplayAlert] = useState<boolean | null>(null);
+  const [alertType, setAlertType] = useState("");
+
+  // formats alert contents based on fetch data
+  function formatAlert(alertType: string) {
+    switch (alertType) {
+      case "update":
+        return (
+          <Alert className="border-green-600">
+            <Check className="stroke-green-600" />
+            <AlertTitle className="text-green-600">
+              This book is already in your library. Book has been updated.
+            </AlertTitle>
+          </Alert>
+        );
+      case "new entry":
+        return (
+          <Alert className="border-green-600">
+            <Check className="stroke-green-600" />
+            <AlertTitle className="text-green-600">
+              The book has been added to your library.
+            </AlertTitle>
+          </Alert>
+        );
+      case "error":
+        return (
+          <Alert className="border-red-600">
+            <X className="stroke-red-600" />
+            <AlertTitle className="text-red-600">
+              The book could not be saved. Please try again.
+            </AlertTitle>
+          </Alert>
+        );
+      default:
+        return (
+          <Alert>
+            <AlertTitle>Alert could not be identified.</AlertTitle>
+          </Alert>
+        );
+    }
+  }
+
   // get the current date in the format of YYYY-MM-DD
   const today = new Date().toISOString().slice(0, 10);
 
@@ -75,11 +119,8 @@ export default function BookForm({ book, setUserInfo }: BookFormProps) {
         });
 
         const data = await response.json();
-        console.log("SaveBook Message:", data.message);
-        // if (response.ok) {
-        //     console.log('book saved')
-        // } else {
-        // }
+        setAlertType(data.message.type);
+        setDisplayAlert(true);
       }
     },
   });
@@ -199,6 +240,12 @@ export default function BookForm({ book, setUserInfo }: BookFormProps) {
             className="w-full rounded-md border-2 p-4"
           />
         </div>
+
+        {displayAlert && (
+          <div className="alert-wrapper col-span-2">
+            {formatAlert(alertType)}
+          </div>
+        )}
 
         <div className="button-wrapper col-span-2 inline-flex w-full gap-4">
           <Button

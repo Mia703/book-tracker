@@ -2,10 +2,60 @@
 import Dropdown from "@/app/components/Dropdown";
 import MainGrid from "@/app/components/MainGrid";
 import SearchBar from "@/app/components/SearchBar";
+import { Book, GoogleBooksResponse, UserBook } from "@/app/types/types";
+import { searchBook_ISBN } from "@/app/utils/utils";
 import { Accordion } from "@radix-ui/react-accordion";
+import { useEffect, useState } from "react";
 
 export default function Library() {
-  // const dropdownList = ["Reading", "Wish List"];
+ 
+  useEffect(() => {
+    async function getAllBooksByType(
+      userEmail: string,
+      readingProgress: string,
+    ) {
+      const response = await fetch("/pages/api/books/getAllBooksByType", {
+        method: "POST",
+        headers: { "Content-type": "application/json" },
+        body: JSON.stringify({
+          userEmail: userEmail,
+          readingProgress,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const userBooksListData = data.message.booksList;
+        const userBooksList: UserBook[] = JSON.parse(userBooksListData);
+
+        // if the array isn't empty, for each item search the book on Google Books API
+        userBooksList.forEach(async (userBook) => {
+          if (userBook.isbn) {
+            // await each API call sequentially with a delay between each call to avoid spamming the Google Books API
+            // if you call the API too quickly too many times, you get 429 (Too Many Requests) error
+            await new Promise((res) => setTimeout(res, 200)); // delay 200ms
+            const googleBookData = await searchBook_ISBN(userBook.isbn);
+
+            const googleBook = googleBookData ? googleBookData[0] : null;
+
+            if (readingProgress == "finished") {
+              // TODO: save data here...
+            
+            }
+          }
+        });
+      }
+    }
+
+    const userData = window.sessionStorage.getItem("user");
+    if (userData) {
+      const user = JSON.parse(userData);
+      ["reading", "wish list", "finished", "dnf"].forEach((item) => {
+        getAllBooksByType(user.email, item);
+      });
+    }
+  }, []);
 
   return (
     <MainGrid>

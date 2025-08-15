@@ -8,33 +8,46 @@ export async function POST(request: Request) {
     if (!userEmail || !isbn || !bookImage) {
       return NextResponse.json(
         {
-          message:
-            "getBook: User email and book isbn and/or bookImage are required",
+          message: "deleteBook: User email and book isbn or image are required",
         },
         { status: 404 },
       );
     }
 
+    // option 1
+    // const response = await fetch("/pages/api/books/getBook", {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify({
+    //     userEmail,
+    //     isbn,
+    //     bookImage,
+    //   }),
+    // });
+
+    // if (response.ok) {
+    //   const data = await response.json();
+    //   const book = JSON.parse(data.message.bookData);
+    // }
+
+    // option 2
     const getBook = await xata.db.Books.filter({
+      user: userEmail,
       bookImage: bookImage === "empty" ? null : bookImage,
       isbn: isbn === "empty" ? null : isbn,
-      user: userEmail,
     }).getFirst();
 
-    if (!getBook) {
+    const deleteBook = await xata.db.Books.delete([`${getBook?.xata_id}`]);
+
+    if (!deleteBook) {
       return NextResponse.json(
-        { message: "getBook: Book is not in db" },
+        { message: "deleteBook: Could not delete book" },
         { status: 404 },
       );
     }
 
     return NextResponse.json(
-      {
-        message: {
-          message: "getBook: Book is in db",
-          bookData: JSON.stringify(getBook),
-        },
-      },
+      { message: "deleteBook: Deleted book" },
       { status: 200 },
     );
   } catch (error) {

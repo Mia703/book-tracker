@@ -34,13 +34,19 @@ export async function POST(request: Request) {
       );
     }
 
-    // TODO: check that book doesn't already exist in db - crateOrUpdate
-    const setBook = await xata.db.Books.create({
+    // check if book exists in db
+    const getBook = await xata.db.Books.filter({
+      user: userEmail,
+      isbn: isbn === "empty" ? null : isbn,
+      bookImage: bookImage === "empty" ? null : bookImage,
+    }).getFirst();
+
+    const setBook = await xata.db.Books.createOrUpdate(getBook?.xata_id, {
       readingProgress,
       rating: rating === "empty" ? null : rating,
       readingFormat: readingFormat === "empty" ? null : readingFormat,
-      startDate: startDate === "empty" ? null : startDate,
-      endDate: endDate === "empty" ? null : endDate,
+      startDate: startDate === "empty" ? null : new Date(startDate),
+      endDate: endDate === "empty" ? null : new Date(endDate),
       comments: comments === "empty" ? null : comments,
       bookImage: bookImage === "empty" ? null : bookImage,
       isbn: isbn === "empty" ? null : isbn,
@@ -49,13 +55,23 @@ export async function POST(request: Request) {
 
     if (!setBook) {
       return NextResponse.json(
-        { message: "setBook: unable to save book" },
+        {
+          message: {
+            message: "setBook: unable to save book",
+            type: "error",
+          },
+        },
         { status: 500 },
       );
     }
 
     return NextResponse.json(
-      { message: "setBook: book saved" },
+      {
+        message: {
+          message: "setBook: Book saved",
+          type: getBook ? "update" : "new entry",
+        },
+      },
       { status: 200 },
     );
   } catch (error) {
