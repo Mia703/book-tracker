@@ -7,53 +7,122 @@ import { searchBook_ISBN } from "@/app/utils/utils";
 import { Accordion } from "@radix-ui/react-accordion";
 import { useEffect, useState } from "react";
 
+type BookResult = {
+  userInfo: UserBook;
+  book: Book;
+};
+
+type Results = {
+  wishlist: BookResult[];
+  reading: BookResult[];
+  finished: BookResult[];
+  dnf: BookResult[];
+};
+
 export default function Library() {
- 
+  const [results, setResults] = useState<Results>({
+    wishlist: [],
+    reading: [],
+    finished: [],
+    dnf: [],
+  });
+
   useEffect(() => {
-    async function getAllBooksByType(
+    async function getAllBooksByReadingProgress(
       userEmail: string,
       readingProgress: string,
     ) {
-      const response = await fetch("/pages/api/books/getAllBooksByType", {
-        method: "POST",
-        headers: { "Content-type": "application/json" },
-        body: JSON.stringify({
-          userEmail: userEmail,
-          readingProgress,
-        }),
-      });
+      const response = await fetch(
+        "/pages/api/books/getAllBooksByReadingProgress",
+        {
+          method: "POST",
+          headers: { "Content-type": "application/json" },
+          body: JSON.stringify({
+            userEmail: userEmail,
+            readingProgress,
+          }),
+        },
+      );
 
       const data = await response.json();
 
       if (response.ok) {
+        // return the list of books from the user's db
         const userBooksListData = data.message.booksList;
         const userBooksList: UserBook[] = JSON.parse(userBooksListData);
-
-        // if the array isn't empty, for each item search the book on Google Books API
-        userBooksList.forEach(async (userBook) => {
-          if (userBook.isbn) {
-            // await each API call sequentially with a delay between each call to avoid spamming the Google Books API
-            // if you call the API too quickly too many times, you get 429 (Too Many Requests) error
-            await new Promise((res) => setTimeout(res, 200)); // delay 200ms
-            const googleBookData = await searchBook_ISBN(userBook.isbn);
-
-            const googleBook = googleBookData ? googleBookData[0] : null;
-
-            if (readingProgress == "finished") {
-              // TODO: save data here...
-            
-            }
-          }
-        });
+        return userBooksList;
       }
+      return null;
     }
 
-    const userData = window.sessionStorage.getItem("user");
-    if (userData) {
-      const user = JSON.parse(userData);
-      ["reading", "wish list", "finished", "dnf"].forEach((item) => {
-        getAllBooksByType(user.email, item);
-      });
+    const cached = window.sessionStorage.getItem("userBookData");
+    if (cached) {
+      setResults(JSON.parse(cached));
+    } else {
+      const userData = window.sessionStorage.getItem("user");
+      if (userData) {
+        const user = JSON.parse(userData);
+
+        const allResults: Results = {
+          wishlist: [],
+          reading: [],
+          finished: [],
+          dnf: [],
+        };
+
+        // Because of the 'as const', ts infers this array as a tuple of literal types instead of string[]
+        const readingProgress = [
+          "wishlist",
+          "reading",
+          "finished",
+          "dnf",
+        ] as const;
+
+        // Use Promise.all to wait for all readingProgress fetches
+        Promise.all(
+          readingProgress.map(async (progress) => {
+            await new Promise((res) => setTimeout(res, 200));
+
+            const userBooksByReadingProgress =
+              await getAllBooksByReadingProgress(user.email, progress);
+
+            if (
+              userBooksByReadingProgress &&
+              userBooksByReadingProgress.length != 0
+            ) {
+              userBooksByReadingProgress.forEach(async (userBook) => {
+                if (userBook.isbn) {
+                  // await each API call sequentially with a delay between each all to avoid spamming the Google Books API
+                  // Note: if you call the API too quickly and too many times, a 429 (Too Many Requests) Error returns
+                  await new Promise((res) => setTimeout(res, 200));
+
+                  // search for the book using the Google Books API
+                  // returns an array with a length of 1
+                  const googleBooks = await searchBook_ISBN(userBook.isbn);
+
+                  if (googleBooks) {
+                    const googleBook = googleBooks[0];
+
+                    // save the book
+                    allResults[progress].push({
+                      userInfo: userBook,
+                      book: googleBook,
+                    });
+                  }
+                } else {
+                  // TODO: handle books without ISBN
+                }
+              });
+            }
+          }),
+        ).then(() => {
+          window.sessionStorage.setItem(
+            "userBookData",
+            JSON.stringify(allResults),
+          );
+          setResults(allResults);
+        });
+      }
     }
   }, []);
 

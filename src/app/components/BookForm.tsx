@@ -146,7 +146,7 @@ export default function BookForm({ book, setUserInfo }: BookFormProps) {
               <SelectValue placeholder="Reading Progress*" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="wishList">Wish List</SelectItem>
+              <SelectItem value="wishlist">Wish List</SelectItem>
               <SelectItem value="reading">Reading</SelectItem>
               <SelectItem value="finished">Finished</SelectItem>
               <SelectItem value="dnf">DNF</SelectItem>

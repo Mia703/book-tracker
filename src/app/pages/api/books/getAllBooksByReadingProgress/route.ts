@@ -12,17 +12,17 @@ export async function POST(request: Request) {
       );
     }
 
-    const getAllBooksByType = await xata.db.Books.filter({
+    const getAllBooksByReadingProgress = await xata.db.Books.filter({
       user: userEmail,
       readingProgress,
     })
       .sort("xata_updatedat", "desc") // sort by newest first
       .getAll();
 
-    if (!getAllBooksByType) {
+    if (!getAllBooksByReadingProgress) {
       return NextResponse.json(
         {
-          message: `getAllBooksByType: There are no books for type: ${readingProgress}`,
+          message: `getAllBooksByReadingProgress: There are no books for type: ${readingProgress}`,
         },
         { status: 404 },
       );
@@ -31,8 +31,8 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         message: {
-          message: `getAllBooksByType: Get books success for type: ${readingProgress}`,
-          booksList: JSON.stringify(getAllBooksByType),
+          message: `getAllBooksByReadingProgress: Get books success for type: ${readingProgress}`,
+          booksList: JSON.stringify(getAllBooksByReadingProgress),
         },
       },
       { status: 200 },
