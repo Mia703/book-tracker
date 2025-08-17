@@ -21,7 +21,8 @@ body {
 
 /* =================== font styles =================== */
 
-h1, h2 {
+h1,
+h2 {
 	color: var(--color-primary-dark-pink);
 }
 
@@ -33,6 +34,16 @@ button.pink {
 button.pink:hover {
 	background-color: #771534;
 }
+
 /* =================== constants =================== */
+.horizontal-media-scroller {
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: min-content;
+	gap: 1rem;
+
+	overflow-x: auto;
+	overscroll-behavior-inline: contain;
+}
 
 /* =================== media queries =================== */

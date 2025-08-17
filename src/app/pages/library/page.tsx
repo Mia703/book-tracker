@@ -91,7 +91,9 @@ export default function Library() {
               userBooksByReadingProgress &&
               userBooksByReadingProgress.length != 0
             ) {
-              userBooksByReadingProgress.forEach(async (userBook) => {
+              // forEach does not await async functions, so it returns values before the async can finish
+              // for....of respects await, and map requires an await Promise.all
+              for (const userBook of userBooksByReadingProgress) {
                 if (userBook.isbn) {
                   // await each API call sequentially with a delay between each all to avoid spamming the Google Books API
                   // Note: if you call the API too quickly and too many times, a 429 (Too Many Requests) Error returns
@@ -113,7 +115,7 @@ export default function Library() {
                 } else {
                   // TODO: handle books without ISBN
                 }
-              });
+              }
             }
           }),
         ).then(() => {
@@ -138,68 +140,73 @@ export default function Library() {
         <div className="accordion-wrapper w-full">
           <Accordion type="single" collapsible defaultValue="accordion-item-0">
             <Dropdown name="Reading" index={0}>
-              <div className="book-wrapper grid auto-cols-fr">
-                {results && results["reading"].length != 0 ? (
-                  results["reading"].map((data, index) => (
+              {results && results["reading"].length != 0 ? (
+                <div className="books-wrapper horizontal-media-scroller">
+                  {results["reading"].map((data, index) => (
                     <Book
                       book={data.book}
                       userInfo={data.userInfo}
                       key={index}
                     />
-                  ))
-                ) : (
-                  <p>You&apos;re not reading any books!</p>
-                )}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center">
+                  You&apos;re not reading any books!
+                </p>
+              )}
             </Dropdown>
 
             <Dropdown name="Wish List" index={1}>
-              <div className="book-wrapper grid auto-cols-fr">
-                {results && results["wishlist"].length != 0 ? (
-                  results["wishlist"].map((data, index) => (
+              {results && results["wishlist"].length != 0 ? (
+                <div className="books-wrapper horizontal-media-scroller">
+                  {results["wishlist"].map((data, index) => (
                     <Book
                       book={data.book}
                       userInfo={data.userInfo}
                       key={index}
                     />
-                  ))
-                ) : (
-                  <p>You don&apos;t have any books in your wish list!</p>
-                )}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center">
+                  You don&apos;t have any books in your wish list!
+                </p>
+              )}
             </Dropdown>
 
             <Dropdown name="Finished" index={2}>
-              <div className="book-wrapper grid auto-cols-fr gap-2">
-                {results && results["finished"].length != 0 ? (
-                  results["finished"].map((data, index) => (
+              {results && results["finished"].length != 0 ? (
+                <div className="books-wrapper horizontal-media-scroller">
+                  {results["finished"].map((data, index) => (
                     <Book
                       book={data.book}
                       userInfo={data.userInfo}
                       key={index}
                     />
-                  ))
-                ) : (
-                  <p>You&apos;re not reading any books!</p>
-                )}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center">
+                  You&apos;re not reading any books!
+                </p>
+              )}
             </Dropdown>
 
-            {/* TODO: format to be horizontal scroll */}
             <Dropdown name="DNF" index={3}>
-              <div className="book-wrapper grid auto-cols-fr">
-                {results && results["dnf"].length != 0 ? (
-                  results["dnf"].map((data, index) => (
+              {results && results["dnf"].length != 0 ? (
+                <div className="books-wrapper horizontal-media-scroller">
+                  {results["dnf"].map((data, index) => (
                     <Book
                       book={data.book}
                       userInfo={data.userInfo}
                       key={index}
                     />
-                  ))
-                ) : (
-                  <p>You&apos;ve read all your books!</p>
-                )}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center">You&apos;ve read all your books!</p>
+              )}
             </Dropdown>
           </Accordion>
         </div>

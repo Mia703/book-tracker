@@ -16,7 +16,7 @@ export default function Book({ book, userInfo }: BookProps) {
             alt={`${book.title}`}
             width={128}
             height={192}
-            className="book-image h-full w-full mb-2"
+            className="book-image mb-2"
           />
         ) : (
           <div className="book-image border-primary-black max-w-[100px] min-w-[80px] border-1 p-2 md:w-[100px]">
