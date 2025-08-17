@@ -46,8 +46,8 @@ export default function SearchBarResults({
                 </div>
               )}
             </div>
-            <p>
-              <span className="font-bold capitalize">
+            <p className="capitalize">
+              <span className="font-bold">
                 {book.title}
                 {book.subtitle ? `: ${book.subtitle}` : ""}
               </span>{" "}

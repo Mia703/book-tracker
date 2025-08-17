@@ -1,15 +1,16 @@
 "use client";
+import Book from "@/app/components/Book";
 import Dropdown from "@/app/components/Dropdown";
 import MainGrid from "@/app/components/MainGrid";
 import SearchBar from "@/app/components/SearchBar";
-import { Book, GoogleBooksResponse, UserBook } from "@/app/types/types";
+import { Book as BookType, UserBook } from "@/app/types/types";
 import { searchBook_ISBN } from "@/app/utils/utils";
 import { Accordion } from "@radix-ui/react-accordion";
 import { useEffect, useState } from "react";
 
 type BookResult = {
   userInfo: UserBook;
-  book: Book;
+  book: BookType;
 };
 
 type Results = {
@@ -136,26 +137,69 @@ export default function Library() {
       >
         <div className="accordion-wrapper w-full">
           <Accordion type="single" collapsible defaultValue="accordion-item-0">
-            {/* accordion items - option 1*/}
-            {/* {dropdownList.map((item, index) => (
-              <Dropdown name={item} index={index} key={index}>animals</Dropdown>
-            ))} */}
-
-            {/* accordion items - option 2 */}
             <Dropdown name="Reading" index={0}>
-              books here
+              <div className="book-wrapper grid auto-cols-fr">
+                {results && results["reading"].length != 0 ? (
+                  results["reading"].map((data, index) => (
+                    <Book
+                      book={data.book}
+                      userInfo={data.userInfo}
+                      key={index}
+                    />
+                  ))
+                ) : (
+                  <p>You&apos;re not reading any books!</p>
+                )}
+              </div>
             </Dropdown>
 
             <Dropdown name="Wish List" index={1}>
-              books here
+              <div className="book-wrapper grid auto-cols-fr">
+                {results && results["wishlist"].length != 0 ? (
+                  results["wishlist"].map((data, index) => (
+                    <Book
+                      book={data.book}
+                      userInfo={data.userInfo}
+                      key={index}
+                    />
+                  ))
+                ) : (
+                  <p>You don&apos;t have any books in your wish list!</p>
+                )}
+              </div>
             </Dropdown>
 
             <Dropdown name="Finished" index={2}>
-              books here
+              <div className="book-wrapper grid auto-cols-fr gap-2">
+                {results && results["finished"].length != 0 ? (
+                  results["finished"].map((data, index) => (
+                    <Book
+                      book={data.book}
+                      userInfo={data.userInfo}
+                      key={index}
+                    />
+                  ))
+                ) : (
+                  <p>You&apos;re not reading any books!</p>
+                )}
+              </div>
             </Dropdown>
 
+            {/* TODO: format to be horizontal scroll */}
             <Dropdown name="DNF" index={3}>
-              books here
+              <div className="book-wrapper grid auto-cols-fr">
+                {results && results["dnf"].length != 0 ? (
+                  results["dnf"].map((data, index) => (
+                    <Book
+                      book={data.book}
+                      userInfo={data.userInfo}
+                      key={index}
+                    />
+                  ))
+                ) : (
+                  <p>You&apos;ve read all your books!</p>
+                )}
+              </div>
             </Dropdown>
           </Accordion>
         </div>
