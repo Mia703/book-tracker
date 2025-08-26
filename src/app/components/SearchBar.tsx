@@ -3,18 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Book } from "@/app/types/types";
 import { useFormik } from "formik";
-import { LogOut, Plus, Search } from "lucide-react";
+import { LogOut, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { searchBooks_Top5 } from "../utils/utils";
-import BookModal from "./BookModal";
-import SearchBarResults from "./SearchBarResults";
+import SearchResults from "./SearchResults";
 
 export default function SearchBar() {
   const [bookResults, setBookResults] = useState<Book[] | null>(null);
-  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [searchToggle, setSearchToggle] = useState<boolean>(false);
-  const [displayModal, setDisplayModal] = useState<boolean>(false);
 
   const router = useRouter();
 
@@ -33,9 +30,10 @@ export default function SearchBar() {
 
   return (
     <section
-      id="search-bar-section"
-      className="col-span-4 p-4 md:col-span-6 lg:col-span-12"
+      id="search-bar"
+      className="col-span-4 p-4 md:col-span-6 lg:col-start-4"
     >
+      {/* SEARCH BAR */}
       <div className="search-bar-wrapper grid w-full grid-cols-2 justify-end gap-4 md:flex">
         <div className="search-wrapper relative col-span-2 row-2 w-full">
           <form
@@ -70,14 +68,8 @@ export default function SearchBar() {
               <Search />
             </Button>
           </form>
-          {searchToggle && (
-            <SearchBarResults
-              bookResults={bookResults}
-              setSelectedBook={setSelectedBook}
-              setSearchToggle={setSearchToggle}
-              setDisplayModal={setDisplayModal}
-            />
-          )}
+
+          {searchToggle && <SearchResults bookResults={bookResults} />}
 
           {/* click on anything below the search bar to close the search results modal */}
           {searchToggle && (
@@ -90,21 +82,15 @@ export default function SearchBar() {
           )}
         </div>
 
+        {/* LOGOUT BUTTON */}
         <div className="buttons-wrapper col-span-2 row-1 flex flex-row justify-end gap-4">
           <Button
             type="button"
-            className="add-book-btn pink cursor-pointer"
-            onClick={() => {
-              setDisplayModal(true);
-            }}
-          >
-            <Plus />
-          </Button>
-          <Button
-            type="button"
-            className="logout-btn pink cursor-pointer"
+            id="logout-btn"
+            className="pink cursor-pointer"
             onClick={() => {
               window.sessionStorage.removeItem("user");
+              window.sessionStorage.removeItem("userBookData");
               router.push("/");
             }}
           >
@@ -112,14 +98,6 @@ export default function SearchBar() {
           </Button>
         </div>
       </div>
-      {displayModal && selectedBook && (
-        <BookModal
-          book={selectedBook}
-          displayUserInfo={false}
-          setDisplayModal={setDisplayModal}
-          setSearchToggle={setSearchToggle}
-        />
-      )}
     </section>
   );
 }

@@ -1,6 +1,7 @@
 /* =================== imported fonts =================== */
 @import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
 @import "tailwindcss";
+
 /* ---------- sub-header ---------- */
 
 /* =================== global variables =================== */
@@ -33,6 +34,7 @@ button.pink {
 
 button.pink:hover {
 	background-color: #771534;
+	color: white;
 }
 
 /* =================== constants =================== */
@@ -40,6 +42,7 @@ button.pink:hover {
 	display: grid;
 	grid-auto-flow: column;
 	grid-auto-columns: min-content;
+	align-items: start;
 	gap: 1rem;
 
 	overflow-x: auto;

@@ -1,16 +1,16 @@
 import React from "react";
 
-export default function MainGrid({
-  children,
-}: Readonly<{
+type MainGridProps = {
   children: React.ReactNode;
-}>) {
+}
+
+export default function MainGrid({children}: MainGridProps) {
   return (
-    <div
+    <section
     id="main-grid"
     className="grid grid-cols-4 gap-4 md:grid-cols-6 lg:grid-cols-12"
   >
     {children}
-  </div>
+  </section>
   );
 }

@@ -1,5 +1,7 @@
 "use client";
 import Book from "@/app/components/Book";
+import BookInfo from "@/app/components/BookInfo";
+import BookScreen from "@/app/components/BookScreen";
 import Dropdown from "@/app/components/Dropdown";
 import MainGrid from "@/app/components/MainGrid";
 import SearchBar from "@/app/components/SearchBar";
@@ -8,6 +10,7 @@ import { searchBook_ISBN } from "@/app/utils/utils";
 import { Accordion } from "@radix-ui/react-accordion";
 import { useEffect, useState } from "react";
 
+// TODO: move to types file
 type BookResult = {
   userInfo: UserBook;
   book: BookType;
@@ -28,6 +31,7 @@ export default function Library() {
     dnf: [],
   });
 
+  // TODO: move to a separate file
   useEffect(() => {
     async function getAllBooksByReadingProgress(
       userEmail: string,
@@ -143,16 +147,17 @@ export default function Library() {
               {results && results["reading"].length != 0 ? (
                 <div className="books-wrapper horizontal-media-scroller">
                   {results["reading"].map((data, index) => (
-                    <Book
-                      book={data.book}
-                      userInfo={data.userInfo}
+                    <BookScreen
                       key={index}
-                    />
+                      screenTrigger={<Book key={index} book={data.book} />}
+                    >
+                      <BookInfo book={data.book} userInfo={data.userInfo} />
+                    </BookScreen>
                   ))}
                 </div>
               ) : (
                 <p className="text-center">
-                  You&apos;re not reading any books!
+                  You&apos;re not reading any books yet!
                 </p>
               )}
             </Dropdown>
@@ -161,11 +166,12 @@ export default function Library() {
               {results && results["wishlist"].length != 0 ? (
                 <div className="books-wrapper horizontal-media-scroller">
                   {results["wishlist"].map((data, index) => (
-                    <Book
-                      book={data.book}
-                      userInfo={data.userInfo}
+                    <BookScreen
                       key={index}
-                    />
+                      screenTrigger={<Book key={index} book={data.book} />}
+                    >
+                      <BookInfo book={data.book} userInfo={data.userInfo} />
+                    </BookScreen>
                   ))}
                 </div>
               ) : (
@@ -179,11 +185,12 @@ export default function Library() {
               {results && results["finished"].length != 0 ? (
                 <div className="books-wrapper horizontal-media-scroller">
                   {results["finished"].map((data, index) => (
-                    <Book
-                      book={data.book}
-                      userInfo={data.userInfo}
+                    <BookScreen
                       key={index}
-                    />
+                      screenTrigger={<Book key={index} book={data.book} />}
+                    >
+                      <BookInfo book={data.book} userInfo={data.userInfo} />
+                    </BookScreen>
                   ))}
                 </div>
               ) : (
@@ -197,11 +204,12 @@ export default function Library() {
               {results && results["dnf"].length != 0 ? (
                 <div className="books-wrapper horizontal-media-scroller">
                   {results["dnf"].map((data, index) => (
-                    <Book
-                      book={data.book}
-                      userInfo={data.userInfo}
+                    <BookScreen
                       key={index}
-                    />
+                      screenTrigger={<Book key={index} book={data.book} />}
+                    >
+                      <BookInfo book={data.book} userInfo={data.userInfo} />
+                    </BookScreen>
                   ))}
                 </div>
               ) : (

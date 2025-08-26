@@ -24,14 +24,15 @@ export default function Dropdown({ name, index, children }: DropdownProps) {
         }}
       >
         <div className="flex flex-row justify-between">
-          <h2 className="capitalize">{name}</h2>
+          <h2 className="capitalize text-lg font-bold">{name}</h2>
 
-          {/* for dropdown of index 0 which starts out open */}
-          {index <= 0 &&
+          {/* FIXME: for dropdown of index 0 which starts out open */}
+          {index == 0 &&
             (toggleTrigger ? (
-              <ChevronDown className="text-primary-dark-pink" />
-            ) : (
               <ChevronRight className="text-primary-dark-pink" />
+            ) : (
+              <ChevronDown className="text-primary-dark-pink" />
+              
             ))}
 
           {/* for all other drop downs that start off closed */}

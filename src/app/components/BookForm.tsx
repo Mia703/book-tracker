@@ -11,22 +11,21 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormik } from "formik";
-import { Dispatch, SetStateAction, useState } from "react";
+import { useState } from "react";
 import * as Yup from "yup";
-import { Book } from "../types/types";
+import { Book, UserBook } from "../types/types";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Check, X } from "lucide-react";
 
 type BookFormProps = {
   book: Book;
-  setUserInfo: Dispatch<SetStateAction<boolean>>;
+  userInfo: UserBook | null;
 };
 
-export default function BookForm({ book, setUserInfo }: BookFormProps) {
+export default function BookForm({ book, userInfo }: BookFormProps) {
   const [displayAlert, setDisplayAlert] = useState<boolean | null>(null);
   const [alertType, setAlertType] = useState("");
 
-  // formats alert contents based on fetch data
   function formatAlert(alertType: string) {
     switch (alertType) {
       case "update":
@@ -34,7 +33,7 @@ export default function BookForm({ book, setUserInfo }: BookFormProps) {
           <Alert className="border-green-600">
             <Check className="stroke-green-600" />
             <AlertTitle className="text-green-600">
-              This book is already in your library. Book has been updated.
+              The book has been updated.
             </AlertTitle>
           </Alert>
         );
@@ -70,18 +69,22 @@ export default function BookForm({ book, setUserInfo }: BookFormProps) {
 
   const formValidation = Yup.object({
     readingProgress: Yup.string().required(() => {
-      console.log("BookForm Error: Please select a reading progress");
+      console.error("BookForm Error: Please select a reading progress");
     }),
   });
 
   const formik = useFormik({
     initialValues: {
-      readingProgress: "",
-      rating: "",
-      readingFormat: "",
-      startDate: "",
-      endDate: "",
-      comments: "",
+      readingProgress: userInfo?.readingProgress || "",
+      rating: userInfo?.rating || "",
+      readingFormat: userInfo?.readingFormat || "",
+      startDate: userInfo?.startDate
+        ? new Date(userInfo.startDate).toISOString().slice(0, 10)
+        : "",
+      endDate: userInfo?.endDate
+        ? new Date(userInfo.endDate).toISOString().slice(0, 10)
+        : "",
+      comments: userInfo?.comments || "",
     },
     validationSchema: formValidation,
     onSubmit: async (values) => {
@@ -126,92 +129,83 @@ export default function BookForm({ book, setUserInfo }: BookFormProps) {
   });
 
   return (
-    <div className="book-form-wrapper border-primary-medium-pink border-t-2">
+    <div className="book-form-wrapper border-primary-medium-pink border-b-2 py-4">
       <form
         action=""
-        id="book-form"
-        className="my-4 grid grid-cols-2 gap-4"
+        method="post"
+        className="flex flex-col gap-4"
         onSubmit={formik.handleSubmit}
       >
-        <div className="input-wrapper col-span-2 grid grid-cols-3 gap-4">
-          <Select
-            name="readingProgress"
-            onValueChange={(value) =>
-              formik.setFieldValue("readingProgress", value)
-            }
-            defaultValue={formik.values.readingProgress}
-            required
-          >
-            <SelectTrigger className="col-span-3 w-full border-red-300 md:col-span-1">
-              <SelectValue placeholder="Reading Progress*" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="wishlist">Wish List</SelectItem>
-              <SelectItem value="reading">Reading</SelectItem>
-              <SelectItem value="finished">Finished</SelectItem>
-              <SelectItem value="dnf">DNF</SelectItem>
-            </SelectContent>
-          </Select>
+        <Select
+          name="readingProgress"
+          onValueChange={(value) =>
+            formik.setFieldValue("readingProgress", value)
+          }
+          defaultValue={formik.values.readingProgress}
+          required
+        >
+          <SelectTrigger className="w-full border-red-300">
+            <SelectValue placeholder="Reading Progress *" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="reading">Reading</SelectItem>
+            <SelectItem value="wishlist">Wish List</SelectItem>
+            <SelectItem value="finished">Finished</SelectItem>
+            <SelectItem value="dnf">DNF</SelectItem>
+          </SelectContent>
+        </Select>
 
-          <Select
-            name="rating"
-            onValueChange={(value) => formik.setFieldValue("rating", value)}
-            defaultValue={formik.values.rating}
-          >
-            <SelectTrigger className="col-span-3 w-full md:col-span-1">
-              <SelectValue placeholder="Rating" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="masterpiece">(5) Masterpiece</SelectItem>
-              <SelectItem value="great">(4) Great</SelectItem>
-              <SelectItem value="good">(3) Good</SelectItem>
-              <SelectItem value="average">(2) Average</SelectItem>
-              <SelectItem value="appalling">(1) Appalling</SelectItem>
-            </SelectContent>
-          </Select>
+        <Select
+          name="rating"
+          onValueChange={(value) => formik.setFieldValue("rating", value)}
+          defaultValue={formik.values.rating}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Rating" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="masterpiece">(5) Masterpiece</SelectItem>
+            <SelectItem value="great">(4) Great</SelectItem>
+            <SelectItem value="good">(3) Good</SelectItem>
+            <SelectItem value="average">(2) Average</SelectItem>
+            <SelectItem value="appalling">(1) Appalling</SelectItem>
+          </SelectContent>
+        </Select>
 
-          <Select
-            name="readingFormat"
-            onValueChange={(value) =>
-              formik.setFieldValue("readingFormat", value)
-            }
-            defaultValue={formik.values.readingFormat}
-          >
-            <SelectTrigger className="col-span-3 w-full md:col-span-1">
-              <SelectValue placeholder="Reading Format" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="eBook">E-book</SelectItem>
-              <SelectItem value="paper">Paper</SelectItem>
-              <SelectItem value="libraryLoan">Library Loan</SelectItem>
-              <SelectItem value="audio">Audio</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <Select
+          name="readingFormat"
+          onValueChange={(value) =>
+            formik.setFieldValue("readingFormat", value)
+          }
+          defaultValue={formik.values.readingFormat}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Reading Format" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="eBook">E-book</SelectItem>
+            <SelectItem value="paper">Paper</SelectItem>
+            <SelectItem value="libraryLoan">Library Loan</SelectItem>
+            <SelectItem value="audio">Audio</SelectItem>
+          </SelectContent>
+        </Select>
 
-        <div className="input-wrapper md:flex md:flex-row md:gap-2">
-          <Label
-            htmlFor="startDate"
-            className="mb-2 w-auto font-bold whitespace-nowrap md:mb-0"
-          >
+        <div className="input-wrapper">
+          <Label htmlFor="startDate" className="mb-2 font-bold">
             Start Date
           </Label>
           <Input
             type="date"
             name="startDate"
             id="startDate"
-            className="flex-1"
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             value={formik.values.startDate}
           />
         </div>
 
-        <div className="input-wrapper md:flex md:flex-row md:gap-2">
-          <Label
-            htmlFor="endDate"
-            className="mb-2 w-auto font-bold whitespace-nowrap md:mb-0"
-          >
+        <div className="input-wrapper">
+          <Label htmlFor="endDate" className="mb-2 font-bold">
             End Date
           </Label>
           <Input
@@ -219,14 +213,13 @@ export default function BookForm({ book, setUserInfo }: BookFormProps) {
             name="endDate"
             id="endDate"
             max={today} // date restriction - prevents you from selecting anything after the current date
-            className="flex-1"
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             value={formik.values.endDate}
           />
         </div>
 
-        <div className="input-wrapper col-span-2">
+        <div className="input-wrapper">
           <Label htmlFor="comments" className="mb-2 font-bold">
             Comments
           </Label>
@@ -237,30 +230,23 @@ export default function BookForm({ book, setUserInfo }: BookFormProps) {
             onBlur={formik.handleBlur}
             onChange={formik.handleChange}
             value={formik.values.comments}
-            className="w-full rounded-md border-2 p-4"
           />
         </div>
 
         {displayAlert && (
-          <div className="alert-wrapper col-span-2">
-            {formatAlert(alertType)}
-          </div>
+          <div className="alert-wrapper">{formatAlert(alertType)}</div>
         )}
 
-        <div className="button-wrapper col-span-2 inline-flex w-full gap-4">
-          <Button
-            type="button"
-            className="w-full flex-1 cursor-pointer"
-            onClick={() => {
-              formik.resetForm(); // clear any inputted data
-              setUserInfo(false); // close the form
-            }}
-          >
-            Exit
-          </Button>
-
-          <Button type="submit" className="pink w-full flex-1/2 cursor-pointer">
-            Save Book
+        <div className="button-wrapper flex flex-row gap-2">
+          {userInfo && (
+            <Button type="button" className="cursor-pointer" onClick={() => {
+              // TODO: delete book
+            }}>
+              Delete
+            </Button>
+          )}
+          <Button type="submit" className="pink flex-1 cursor-pointer">
+            {userInfo ? "Update Book" : "Save Book"}
           </Button>
         </div>
       </form>
