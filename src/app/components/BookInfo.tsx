@@ -1,17 +1,14 @@
 import Image from "next/image";
-import { Book, UserBook } from "../types/types";
+import { Book, UserInfo } from "../types/types";
 import { useState } from "react";
 import BookForm from "./BookForm";
 
 type BookInfoProps = {
   book: Book;
-  userInfo: UserBook | null;
+  userInfo: UserInfo | null;
 };
 
-export default function BookInfo({
-  book,
-  userInfo,
-}: BookInfoProps) {
+export default function BookInfo({ book, userInfo }: BookInfoProps) {
   const [toggleBookLength, setToggleBookLength] = useState<boolean>(true);
 
   return (

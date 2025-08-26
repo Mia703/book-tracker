@@ -5,26 +5,13 @@ import BookScreen from "@/app/components/BookScreen";
 import Dropdown from "@/app/components/Dropdown";
 import MainGrid from "@/app/components/MainGrid";
 import SearchBar from "@/app/components/SearchBar";
-import { Book as BookType, UserBook } from "@/app/types/types";
+import { BooksList, UserInfo } from "@/app/types/types";
 import { searchBook_ISBN } from "@/app/utils/utils";
 import { Accordion } from "@radix-ui/react-accordion";
 import { useEffect, useState } from "react";
 
-// TODO: move to types file
-type BookResult = {
-  userInfo: UserBook;
-  book: BookType;
-};
-
-type Results = {
-  wishlist: BookResult[];
-  reading: BookResult[];
-  finished: BookResult[];
-  dnf: BookResult[];
-};
-
 export default function Library() {
-  const [results, setResults] = useState<Results>({
+  const [results, setResults] = useState<BooksList>({
     wishlist: [],
     reading: [],
     finished: [],
@@ -54,7 +41,7 @@ export default function Library() {
       if (response.ok) {
         // return the list of books from the user's db
         const userBooksListData = data.message.booksList;
-        const userBooksList: UserBook[] = JSON.parse(userBooksListData);
+        const userBooksList: UserInfo[] = JSON.parse(userBooksListData);
         return userBooksList;
       }
       return null;
@@ -68,7 +55,7 @@ export default function Library() {
       if (userData) {
         const user = JSON.parse(userData);
 
-        const allResults: Results = {
+        const allResults: BooksList = {
           wishlist: [],
           reading: [],
           finished: [],

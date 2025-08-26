@@ -28,7 +28,11 @@ export async function POST(request: Request) {
     ) {
       return NextResponse.json(
         {
-          message: "setBook: User info and book image and isbn are required",
+          message: {
+            message: "setBook: User info and book image and isbn are required",
+            type: "error",
+            userInfo: "null",
+          },
         },
         { status: 404 },
       );
@@ -59,6 +63,7 @@ export async function POST(request: Request) {
           message: {
             message: "setBook: unable to save book",
             type: "error",
+            userInfo: "null",
           },
         },
         { status: 500 },
@@ -70,6 +75,7 @@ export async function POST(request: Request) {
         message: {
           message: "setBook: Book saved",
           type: getBook ? "update" : "new entry",
+          userInfo: JSON.stringify(setBook),
         },
       },
       { status: 200 },
@@ -77,7 +83,13 @@ export async function POST(request: Request) {
   } catch (error) {
     console.log("Error", error);
     return NextResponse.json(
-      { message: "Internal server error." },
+      {
+        message: {
+          message: "Internal server error.",
+          type: "error",
+          userInfo: "null",
+        },
+      },
       { status: 500 },
     );
   }

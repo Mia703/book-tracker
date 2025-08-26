@@ -13,13 +13,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { useFormik } from "formik";
 import { useState } from "react";
 import * as Yup from "yup";
-import { Book, UserBook } from "../types/types";
+import { Book, UserInfo } from "../types/types";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Check, X } from "lucide-react";
 
 type BookFormProps = {
   book: Book;
-  userInfo: UserBook | null;
+  userInfo: UserInfo | null;
 };
 
 export default function BookForm({ book, userInfo }: BookFormProps) {
@@ -239,9 +239,13 @@ export default function BookForm({ book, userInfo }: BookFormProps) {
 
         <div className="button-wrapper flex flex-row gap-2">
           {userInfo && (
-            <Button type="button" className="cursor-pointer" onClick={() => {
-              // TODO: delete book
-            }}>
+            <Button
+              type="button"
+              className="cursor-pointer"
+              onClick={() => {
+                // TODO: delete book
+              }}
+            >
               Delete
             </Button>
           )}
