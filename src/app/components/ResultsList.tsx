@@ -12,7 +12,7 @@ export default function ResultsList({ book, index }: ResultsList) {
       key={index}
       className="search-result-item border-primary-medium-pink grid cursor-pointer grid-cols-[min-content_1fr] gap-4 border-b-2 py-2"
     >
-      <div className="book-image-wrapper w-20">
+      <div className="book-image-wrapper w-25">
         {book.imageLinks?.smallThumbnail ? (
           <Image
             src={book.imageLinks?.smallThumbnail}
@@ -22,7 +22,7 @@ export default function ResultsList({ book, index }: ResultsList) {
             className="book-image h-auto w-full"
           />
         ) : (
-          <div className="book-image border-primary-black max-w-[100px] min-w-[80px] border-1 p-2 md:w-[100px]">
+          <div className="book-image border-primary-black w-full h-30 flex flex-col justify-center border-1 p-2">
             No image available
           </div>
         )}

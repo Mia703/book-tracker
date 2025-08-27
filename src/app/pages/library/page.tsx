@@ -48,6 +48,7 @@ export default function Library() {
     }
 
     const cached = window.sessionStorage.getItem("userBookData");
+    
     if (cached) {
       setResults(JSON.parse(cached));
     } else {

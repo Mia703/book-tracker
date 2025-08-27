@@ -20,8 +20,9 @@ export default function SearchResults({ bookResults, setResults }: SearchResults
         bookResults?.map((book, index) => (
           <BookScreen
             key={index}
-            screenTrigger={<ResultsList book={book} index={index} />}
+            screenTrigger={<ResultsList book={book} index={index} />} // what's displayed under the search bar
           >
+            {/* What's displayed on each click of a search bar item */}
             <BookInfo book={book} userInfo={null} setResults={setResults}/>
           </BookScreen>
         ))

@@ -15,7 +15,7 @@ import { Dispatch, SetStateAction, useState } from "react";
 import * as Yup from "yup";
 import { Book, BookInformation, BooksList, UserInfo } from "../types/types";
 import { Alert, AlertTitle } from "@/components/ui/alert";
-import { Check, X } from "lucide-react";
+import { Check, CircleQuestionMark, X } from "lucide-react";
 
 type BookFormProps = {
   book: Book;
@@ -56,21 +56,36 @@ export default function BookForm({
           <Alert className="border-red-600">
             <X className="stroke-red-600" />
             <AlertTitle className="text-red-600">
-              The book could not be saved. Please try again.
+              There was an error. Please try again.
+            </AlertTitle>
+          </Alert>
+        );
+      case "delete":
+        return (
+          <Alert className="border-red-600">
+            <Check className="stroke-red-600" />
+            <AlertTitle className="text-red-600">
+              The book as been deleted.
             </AlertTitle>
           </Alert>
         );
       default:
         return (
-          <Alert>
-            <AlertTitle>Alert could not be identified.</AlertTitle>
+          <Alert className="border-neutral-600">
+            <CircleQuestionMark className="stroke-neutral-600" />
+            <AlertTitle className="text-neutral-600">
+              Alert could not be identified.
+            </AlertTitle>
           </Alert>
         );
     }
   }
 
   function isReadingProgress(progress: string) {
-    return ["wishlist", "reading", "finished", "dnf"].includes(progress);
+    if (["wishlist", "reading", "finished", "dnf"].includes(progress)) {
+      return progress as keyof BooksList;
+    }
+    return undefined;
   }
 
   // get the current date in the format of YYYY-MM-DD
@@ -132,10 +147,8 @@ export default function BookForm({
 
         const data = await response.json();
         const updatedUserInfo: UserInfo = JSON.parse(data.message.userInfo);
-        console.log("updatedUserInfo", updatedUserInfo);
 
         if (response.ok) {
-          // TODO: this needs to be sorted by "xata_createdat" with newest first
           setResults((prev) => {
             const currentKey = Object.keys(prev).find((key) =>
               prev[key as keyof BooksList].some(
@@ -184,6 +197,13 @@ export default function BookForm({
                 { book: book, userInfo: updatedUserInfo },
               ];
             }
+
+            // sort the target list by userInfo.xata_createdat (newest first)
+            newState[targetKey] = newState[targetKey].sort(
+              (a, b) =>
+                new Date(b.userInfo.xata_createdat).getTime() -
+                new Date(a.userInfo.xata_createdat).getTime(),
+            );
 
             return newState;
           });
@@ -309,8 +329,38 @@ export default function BookForm({
             <Button
               type="button"
               className="cursor-pointer"
-              onClick={() => {
-                // TODO: delete book
+              onClick={async () => {
+                const response = await fetch("/pages/api/books/deleteBook", {
+                  method: "POST",
+                  headers: { "Content-type": "application/json" },
+                  body: JSON.stringify({
+                    xataID: userInfo.xata_id,
+                  }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                  setResults((prev) => {
+                    const currentKey = isReadingProgress(
+                      userInfo.readingProgress,
+                    );
+
+                    const newState = { ...prev };
+
+                    // 1. Remove the book from the list
+                    if (currentKey) {
+                      newState[currentKey] = newState[currentKey].filter(
+                        (item: BookInformation) =>
+                          item.book.title !== book.title,
+                      );
+                    }
+
+                    return newState;
+                  });
+                  setAlertType(data.message.type);
+                  setDisplayAlert(true);
+                }
               }}
             >
               Delete
