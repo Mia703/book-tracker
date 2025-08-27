@@ -120,9 +120,15 @@ export default function Library() {
     }
   }, []);
 
+  useEffect(() => {
+    if (results) {
+      window.sessionStorage.setItem("userBookData", JSON.stringify(results));
+    }
+  }, [results]);
+
   return (
     <MainGrid>
-      <SearchBar />
+      <SearchBar setResults={setResults} />
 
       <section
         id="accordion-section"
@@ -138,7 +144,11 @@ export default function Library() {
                       key={index}
                       screenTrigger={<Book key={index} book={data.book} />}
                     >
-                      <BookInfo book={data.book} userInfo={data.userInfo} />
+                      <BookInfo
+                        book={data.book}
+                        userInfo={data.userInfo}
+                        setResults={setResults}
+                      />
                     </BookScreen>
                   ))}
                 </div>
@@ -157,7 +167,11 @@ export default function Library() {
                       key={index}
                       screenTrigger={<Book key={index} book={data.book} />}
                     >
-                      <BookInfo book={data.book} userInfo={data.userInfo} />
+                      <BookInfo
+                        book={data.book}
+                        userInfo={data.userInfo}
+                        setResults={setResults}
+                      />
                     </BookScreen>
                   ))}
                 </div>
@@ -176,7 +190,11 @@ export default function Library() {
                       key={index}
                       screenTrigger={<Book key={index} book={data.book} />}
                     >
-                      <BookInfo book={data.book} userInfo={data.userInfo} />
+                      <BookInfo
+                        book={data.book}
+                        userInfo={data.userInfo}
+                        setResults={setResults}
+                      />
                     </BookScreen>
                   ))}
                 </div>
@@ -195,7 +213,11 @@ export default function Library() {
                       key={index}
                       screenTrigger={<Book key={index} book={data.book} />}
                     >
-                      <BookInfo book={data.book} userInfo={data.userInfo} />
+                      <BookInfo
+                        book={data.book}
+                        userInfo={data.userInfo}
+                        setResults={setResults}
+                      />
                     </BookScreen>
                   ))}
                 </div>

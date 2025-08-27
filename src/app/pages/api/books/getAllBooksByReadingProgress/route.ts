@@ -16,7 +16,7 @@ export async function POST(request: Request) {
       user: userEmail,
       readingProgress,
     })
-      .sort("xata_updatedat", "desc") // sort by newest first
+      .sort("xata_createdat", "desc") // sort by newest first
       .getAll();
 
     if (!getAllBooksByReadingProgress) {

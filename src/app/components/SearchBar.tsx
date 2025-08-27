@@ -1,15 +1,19 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Book } from "@/app/types/types";
+import { Book, BooksList } from "@/app/types/types";
 import { useFormik } from "formik";
 import { LogOut, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { searchBooks_Top5 } from "../utils/utils";
 import SearchResults from "./SearchResults";
 
-export default function SearchBar() {
+type SearchBarProps = {
+  setResults: Dispatch<SetStateAction<BooksList>>;
+};
+
+export default function SearchBar({ setResults }: SearchBarProps) {
   const [bookResults, setBookResults] = useState<Book[] | null>(null);
   const [searchToggle, setSearchToggle] = useState<boolean>(false);
 
@@ -69,7 +73,9 @@ export default function SearchBar() {
             </Button>
           </form>
 
-          {searchToggle && <SearchResults bookResults={bookResults} />}
+          {searchToggle && (
+            <SearchResults bookResults={bookResults} setResults={setResults} />
+          )}
 
           {/* click on anything below the search bar to close the search results modal */}
           {searchToggle && (

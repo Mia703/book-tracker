@@ -1,14 +1,19 @@
 import Image from "next/image";
-import { Book, UserInfo } from "../types/types";
-import { useState } from "react";
+import { Book, BooksList, UserInfo } from "../types/types";
+import { Dispatch, SetStateAction, useState } from "react";
 import BookForm from "./BookForm";
 
 type BookInfoProps = {
   book: Book;
   userInfo: UserInfo | null;
+  setResults: Dispatch<SetStateAction<BooksList>>;
 };
 
-export default function BookInfo({ book, userInfo }: BookInfoProps) {
+export default function BookInfo({
+  book,
+  userInfo,
+  setResults,
+}: BookInfoProps) {
   const [toggleBookLength, setToggleBookLength] = useState<boolean>(true);
 
   return (
@@ -116,7 +121,7 @@ export default function BookInfo({ book, userInfo }: BookInfoProps) {
       </div>
 
       {/* BOOK FORM */}
-      <BookForm book={book} userInfo={userInfo} />
+      <BookForm book={book} userInfo={userInfo} setResults={setResults} />
     </div>
   );
 }

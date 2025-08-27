@@ -1,13 +1,15 @@
-import { Book } from "../types/types";
+import { Book, BooksList } from "../types/types";
 import BookInfo from "./BookInfo";
 import ResultsList from "./ResultsList";
 import BookScreen from "./BookScreen";
+import { Dispatch, SetStateAction } from "react";
 
 type SearchResultsProps = {
   bookResults: Book[] | null;
+  setResults: Dispatch<SetStateAction<BooksList>>;
 };
 
-export default function SearchResults({ bookResults }: SearchResultsProps) {
+export default function SearchResults({ bookResults, setResults }: SearchResultsProps) {
   return (
     <div
       id="search-results"
@@ -20,7 +22,7 @@ export default function SearchResults({ bookResults }: SearchResultsProps) {
             key={index}
             screenTrigger={<ResultsList book={book} index={index} />}
           >
-            <BookInfo book={book} userInfo={null} />
+            <BookInfo book={book} userInfo={null} setResults={setResults}/>
           </BookScreen>
         ))
       ) : (

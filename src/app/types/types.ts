@@ -110,7 +110,7 @@ export interface UserInfo {
   xata_version: number;
 }
 
-type BookInformation = {
+export type BookInformation = {
   book: Book;
   userInfo: UserInfo;
 };

@@ -11,18 +11,23 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormik } from "formik";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import * as Yup from "yup";
-import { Book, UserInfo } from "../types/types";
+import { Book, BookInformation, BooksList, UserInfo } from "../types/types";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Check, X } from "lucide-react";
 
 type BookFormProps = {
   book: Book;
   userInfo: UserInfo | null;
+  setResults: Dispatch<SetStateAction<BooksList>>;
 };
 
-export default function BookForm({ book, userInfo }: BookFormProps) {
+export default function BookForm({
+  book,
+  userInfo,
+  setResults,
+}: BookFormProps) {
   const [displayAlert, setDisplayAlert] = useState<boolean | null>(null);
   const [alertType, setAlertType] = useState("");
 
@@ -62,6 +67,10 @@ export default function BookForm({ book, userInfo }: BookFormProps) {
           </Alert>
         );
     }
+  }
+
+  function isReadingProgress(progress: string) {
+    return ["wishlist", "reading", "finished", "dnf"].includes(progress);
   }
 
   // get the current date in the format of YYYY-MM-DD
@@ -122,6 +131,64 @@ export default function BookForm({ book, userInfo }: BookFormProps) {
         });
 
         const data = await response.json();
+        const updatedUserInfo: UserInfo = JSON.parse(data.message.userInfo);
+        console.log("updatedUserInfo", updatedUserInfo);
+
+        if (response.ok) {
+          // TODO: this needs to be sorted by "xata_createdat" with newest first
+          setResults((prev) => {
+            const currentKey = Object.keys(prev).find((key) =>
+              prev[key as keyof BooksList].some(
+                (item: BookInformation) => item.book.title === book.title,
+              ),
+            ) as keyof BooksList | undefined;
+
+            const targetKey =
+              updatedUserInfo.readingProgress === "wishlist"
+                ? "wishlist"
+                : updatedUserInfo.readingProgress === "reading"
+                  ? "reading"
+                  : updatedUserInfo.readingProgress === "finished"
+                    ? "finished"
+                    : "dnf";
+
+            const newState = { ...prev };
+
+            // 1. If the book exists in another list, remove it from there
+            if (currentKey) {
+              newState[currentKey] = newState[currentKey].filter(
+                (item: BookInformation) => item.book.title !== book.title,
+              );
+            }
+
+            // 2. Check if it already exists in the target list
+            const existingIndex = newState[targetKey].findIndex(
+              (item: BookInformation) => item.book.title === book.title,
+            );
+
+            if (existingIndex !== -1) {
+              // Update book + userInfo
+              newState[targetKey] = newState[targetKey].map((item, index) =>
+                index === existingIndex
+                  ? {
+                      ...item,
+                      book: { ...item.book, ...book },
+                      userInfo: { ...item.userInfo, ...updatedUserInfo },
+                    }
+                  : item,
+              );
+            } else {
+              // Add new if not found
+              newState[targetKey] = [
+                ...newState[targetKey],
+                { book: book, userInfo: updatedUserInfo },
+              ];
+            }
+
+            return newState;
+          });
+        }
+
         setAlertType(data.message.type);
         setDisplayAlert(true);
       }
