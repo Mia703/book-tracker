@@ -5,6 +5,9 @@ import {
   SheetFooter,
   SheetClose,
   SheetTrigger,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useState } from "react";
 import { searchBooks_Top5 } from "../pages/utils/utils";
 import SearchResults from "./SearchResults";
+import BookCreateForm from "./BookCreateForm";
 
 type SearchBarProps = {
   setResults: Dispatch<SetStateAction<BooksList>>;
@@ -97,14 +101,17 @@ export default function SearchBar({ setResults }: SearchBarProps) {
 
         <div className="buttons-wrapper col-span-2 row-1 flex flex-row justify-end gap-4">
           {/* CREATE YOUR OWN BOOK */}
-          <Sheet>
+          {/* TODO: would have to fix xata db to accommodate books */}
+          {/* <Sheet>
             <SheetTrigger asChild>
               <Button className="pink cursor-pointer">
                 <Plus />
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="overflow-y-scroll p-6">
-              {/* TODO: create your own book here */}
+              <SheetTitle className="text-xl text-center">Create a Book</SheetTitle>
+              <SheetDescription className="text-center">Can&apos;t find a book? Create your own!</SheetDescription>
+              <BookCreateForm setResults={setResults} />
               <SheetFooter className="p-0">
                 <SheetClose asChild>
                   <Button className="bg-primary-black w-full cursor-pointer">
@@ -113,7 +120,7 @@ export default function SearchBar({ setResults }: SearchBarProps) {
                 </SheetClose>
               </SheetFooter>
             </SheetContent>
-          </Sheet>
+          </Sheet> */}
 
           {/* LOGOUT BUTTON */}
           <Button

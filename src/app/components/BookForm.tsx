@@ -92,9 +92,7 @@ export default function BookForm({
   const today = new Date().toISOString().slice(0, 10);
 
   const formValidation = Yup.object({
-    readingProgress: Yup.string().required(() => {
-      console.error("BookForm Error: Please select a reading progress");
-    }),
+    readingProgress: Yup.string().required(),
   });
 
   const formik = useFormik({
