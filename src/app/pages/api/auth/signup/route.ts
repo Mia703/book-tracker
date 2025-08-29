@@ -7,8 +7,15 @@ export async function POST(request: Request) {
 
     if (!firstName || !lastName || !email) {
       return NextResponse.json(
-        { message: "Signup: First name, last name, and email are required" },
-        { status: 404 },
+        {
+          message: {
+            developerMessage:
+              "Signup: First name, last name, and email are required",
+            clientMessage:
+              "Your first name, last name, and email are required to signup.",
+          },
+        },
+        { status: 400 },
       );
     }
 
@@ -20,13 +27,23 @@ export async function POST(request: Request) {
 
     if (!user) {
       return NextResponse.json(
-        { message: "Signup: Unable to create user" },
+        {
+          message: {
+            developerMessage: "Signup: Unable to create user",
+            clientMessage: "Could not create user. Please try again.",
+          },
+        },
         { status: 404 },
       );
     }
 
     return NextResponse.json(
-      { message: "Signup: Created user" },
+      {
+        message: {
+          developerMessage: "Signup: Created user",
+          clientMessage: "",
+        },
+      },
       { status: 200 },
     );
   } catch (error) {
@@ -35,14 +52,24 @@ export async function POST(request: Request) {
     if (error instanceof Error) {
       if (error.message.includes("is not unique")) {
         return NextResponse.json(
-          { message: "Signup: Email already exists" },
-          { status: 500 },
+          {
+            message: {
+              developerMessage: "Signup: Email already exists",
+              clientMessage: "This email already exists. Try logging in.",
+            },
+          },
+          { status: 400 },
         );
       }
     }
 
     return NextResponse.json(
-      { message: "Signup: Internal server error" },
+      {
+        message: {
+          developerMessage: "Signup: Internal server error",
+          clientMessage: "An error has occurred on our end. Sorry!",
+        },
+      },
       { status: 500 },
     );
   }

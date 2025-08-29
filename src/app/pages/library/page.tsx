@@ -6,17 +6,22 @@ import Dropdown from "@/app/components/Dropdown";
 import MainGrid from "@/app/components/MainGrid";
 import SearchBar from "@/app/components/SearchBar";
 import { BooksList, UserInfo } from "@/app/types/types";
-import { searchBook_ISBN } from "@/app/utils/utils";
+import { searchBook_ISBN } from "@/app/pages/utils/utils";
+import { Button } from "@/components/ui/button";
 import { Accordion } from "@radix-ui/react-accordion";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function Library() {
+  const [loggedIn, setLoggedIn] = useState<boolean>(false);
   const [results, setResults] = useState<BooksList>({
     wishlist: [],
     reading: [],
     finished: [],
     dnf: [],
   });
+
+  const router = useRouter();
 
   // TODO: move to a separate file
   useEffect(() => {
@@ -47,13 +52,16 @@ export default function Library() {
       return null;
     }
 
-    const cached = window.sessionStorage.getItem("userBookData");
-    
-    if (cached) {
-      setResults(JSON.parse(cached));
-    } else {
-      const userData = window.sessionStorage.getItem("user");
-      if (userData) {
+    const userData = window.sessionStorage.getItem("user");
+
+    if (userData) {
+      setLoggedIn(true);
+
+      const cached = window.sessionStorage.getItem("userBookData");
+
+      if (cached) {
+        setResults(JSON.parse(cached));
+      } else {
         const user = JSON.parse(userData);
 
         const allResults: BooksList = {
@@ -118,6 +126,8 @@ export default function Library() {
           setResults(allResults);
         });
       }
+    } else {
+      setLoggedIn(false);
     }
   }, []);
 
@@ -130,105 +140,129 @@ export default function Library() {
   return (
     <MainGrid>
       <SearchBar setResults={setResults} />
+      {loggedIn ? (
+        <section
+          id="accordion-section"
+          className="col-span-4 md:col-span-6 lg:col-span-12"
+        >
+          <div className="accordion-wrapper w-full">
+            <Accordion
+              type="single"
+              collapsible
+              defaultValue="accordion-item-0"
+            >
+              <Dropdown name="Reading" index={0}>
+                {results && results["reading"].length != 0 ? (
+                  <div className="books-wrapper horizontal-media-scroller">
+                    {results["reading"].map((data, index) => (
+                      <BookScreen
+                        key={index}
+                        screenTrigger={<Book key={index} book={data.book} />}
+                      >
+                        <BookInfo
+                          book={data.book}
+                          userInfo={data.userInfo}
+                          setResults={setResults}
+                        />
+                      </BookScreen>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center">
+                    You&apos;re not reading any books yet!
+                  </p>
+                )}
+              </Dropdown>
 
-      <section
-        id="accordion-section"
-        className="col-span-4 md:col-span-6 lg:col-span-12"
-      >
-        <div className="accordion-wrapper w-full">
-          <Accordion type="single" collapsible defaultValue="accordion-item-0">
-            <Dropdown name="Reading" index={0}>
-              {results && results["reading"].length != 0 ? (
-                <div className="books-wrapper horizontal-media-scroller">
-                  {results["reading"].map((data, index) => (
-                    <BookScreen
-                      key={index}
-                      screenTrigger={<Book key={index} book={data.book} />}
-                    >
-                      <BookInfo
-                        book={data.book}
-                        userInfo={data.userInfo}
-                        setResults={setResults}
-                      />
-                    </BookScreen>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center">
-                  You&apos;re not reading any books yet!
-                </p>
-              )}
-            </Dropdown>
+              <Dropdown name="Wish List" index={1}>
+                {results && results["wishlist"].length != 0 ? (
+                  <div className="books-wrapper horizontal-media-scroller">
+                    {results["wishlist"].map((data, index) => (
+                      <BookScreen
+                        key={index}
+                        screenTrigger={<Book key={index} book={data.book} />}
+                      >
+                        <BookInfo
+                          book={data.book}
+                          userInfo={data.userInfo}
+                          setResults={setResults}
+                        />
+                      </BookScreen>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center">
+                    You don&apos;t have any books in your wish list!
+                  </p>
+                )}
+              </Dropdown>
 
-            <Dropdown name="Wish List" index={1}>
-              {results && results["wishlist"].length != 0 ? (
-                <div className="books-wrapper horizontal-media-scroller">
-                  {results["wishlist"].map((data, index) => (
-                    <BookScreen
-                      key={index}
-                      screenTrigger={<Book key={index} book={data.book} />}
-                    >
-                      <BookInfo
-                        book={data.book}
-                        userInfo={data.userInfo}
-                        setResults={setResults}
-                      />
-                    </BookScreen>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center">
-                  You don&apos;t have any books in your wish list!
-                </p>
-              )}
-            </Dropdown>
+              <Dropdown name="Finished" index={2}>
+                {results && results["finished"].length != 0 ? (
+                  <div className="books-wrapper horizontal-media-scroller">
+                    {results["finished"].map((data, index) => (
+                      <BookScreen
+                        key={index}
+                        screenTrigger={<Book key={index} book={data.book} />}
+                      >
+                        <BookInfo
+                          book={data.book}
+                          userInfo={data.userInfo}
+                          setResults={setResults}
+                        />
+                      </BookScreen>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center">
+                    You&apos;re not reading any books!
+                  </p>
+                )}
+              </Dropdown>
 
-            <Dropdown name="Finished" index={2}>
-              {results && results["finished"].length != 0 ? (
-                <div className="books-wrapper horizontal-media-scroller">
-                  {results["finished"].map((data, index) => (
-                    <BookScreen
-                      key={index}
-                      screenTrigger={<Book key={index} book={data.book} />}
-                    >
-                      <BookInfo
-                        book={data.book}
-                        userInfo={data.userInfo}
-                        setResults={setResults}
-                      />
-                    </BookScreen>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center">
-                  You&apos;re not reading any books!
-                </p>
-              )}
-            </Dropdown>
-
-            <Dropdown name="DNF" index={3}>
-              {results && results["dnf"].length != 0 ? (
-                <div className="books-wrapper horizontal-media-scroller">
-                  {results["dnf"].map((data, index) => (
-                    <BookScreen
-                      key={index}
-                      screenTrigger={<Book key={index} book={data.book} />}
-                    >
-                      <BookInfo
-                        book={data.book}
-                        userInfo={data.userInfo}
-                        setResults={setResults}
-                      />
-                    </BookScreen>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center">You&apos;ve read all your books!</p>
-              )}
-            </Dropdown>
-          </Accordion>
-        </div>
-      </section>
+              <Dropdown name="DNF" index={3}>
+                {results && results["dnf"].length != 0 ? (
+                  <div className="books-wrapper horizontal-media-scroller">
+                    {results["dnf"].map((data, index) => (
+                      <BookScreen
+                        key={index}
+                        screenTrigger={<Book key={index} book={data.book} />}
+                      >
+                        <BookInfo
+                          book={data.book}
+                          userInfo={data.userInfo}
+                          setResults={setResults}
+                        />
+                      </BookScreen>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center">
+                    You&apos;ve read all your books!
+                  </p>
+                )}
+              </Dropdown>
+            </Accordion>
+          </div>
+        </section>
+      ) : (
+        <section
+          id="logged-out"
+          className="col-span-4 flex h-[60vh] flex-col items-center justify-center md:col-span-6 lg:col-span-12"
+        >
+          <h1 className="mb-2 text-2xl font-bold">
+            You&apos;re not logged in!
+          </h1>
+          <Button
+            className="pink cursor-pointer"
+            onClick={() => {
+              router.push("/");
+            }}
+          >
+            Back go Login
+          </Button>
+        </section>
+      )}
     </MainGrid>
   );
 }

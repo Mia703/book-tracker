@@ -1,7 +1,4 @@
 "use client";
-import { Input } from "@/components/ui/input";
-import MainGrid from "./components/MainGrid";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,12 +6,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import Link from "next/link";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useFormik } from "formik";
 import { useState } from "react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircleIcon } from "lucide-react";
+import MainGrid from "./components/MainGrid";
+import Link from "next/link";
 
 export default function Home() {
   const [alert, setAlert] = useState<string>("");
@@ -48,8 +48,11 @@ export default function Home() {
 
         router.push("/pages/library");
       } else {
-        setAlert(data.message.message);
-        console.error(`Error (${response.status})`, data.message.message);
+        setAlert(data.message.clientMessage);
+        console.error(
+          `Error (${response.status})`,
+          data.message.developerMessage,
+        );
       }
     },
   });
@@ -63,7 +66,7 @@ export default function Home() {
         <Card className="bg-primary-light-pink">
           <CardHeader>
             <CardTitle className="text-center">
-              <h1>Login</h1>
+              <h1 className="text-xl">Login</h1>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -88,7 +91,6 @@ export default function Home() {
             {alert && (
               <Alert variant={"destructive"}>
                 <AlertCircleIcon />
-                <AlertTitle>Unable to Login</AlertTitle>
                 <AlertDescription>{alert}</AlertDescription>
               </Alert>
             )}
@@ -102,6 +104,9 @@ export default function Home() {
                 </Link>
                 .
               </p>
+              <Link href={"/pages/auth/delete"} className="underline">
+                Delete Account
+              </Link>
             </div>
           </CardFooter>
         </Card>

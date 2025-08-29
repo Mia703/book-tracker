@@ -1,4 +1,4 @@
-import { Book, GoogleBooksResponse, UserInfo } from "../types/types";
+import { Book, GoogleBooksResponse, UserInfo } from "../../types/types";
 
 /**
  * Formats a search input string by encoding punctuation, currency, and symbol characters
@@ -80,44 +80,42 @@ export async function searchBooks_Top5(searchInput: string) {
 }
 
 export async function searchBook_ISBN(searchInput: string) {
-   let bookResults: Book[] | null = null;
+  let bookResults: Book[] | null = null;
 
-   const response = await fetch(
-     `https://www.googleapis.com/books/v1/volumes?q=${formatSearch(`isbn:${searchInput}`)}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`,
-     {
-       method: "GET",
-       headers: { "Content-type": "application/json" },
-     },
-   );
+  const response = await fetch(
+    `https://www.googleapis.com/books/v1/volumes?q=${formatSearch(`isbn:${searchInput}`)}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`,
+    {
+      method: "GET",
+      headers: { "Content-type": "application/json" },
+    },
+  );
 
-   if (response.ok) {
-     const data = await response.json();
+  if (response.ok) {
+    const data = await response.json();
 
-     const booksList: Book[] = (data as GoogleBooksResponse).items
-       .slice(0)
-       .map((item) => {
-         const bookInfo = item.volumeInfo;
+    const booksList: Book[] = (data as GoogleBooksResponse).items
+      .slice(0)
+      .map((item) => {
+        const bookInfo = item.volumeInfo;
 
-         return {
-           title: bookInfo.title,
-           subtitle: bookInfo.subtitle,
-           authors: bookInfo.authors,
-           description: bookInfo.description,
-           categories: bookInfo.categories,
-           imageLinks: bookInfo.imageLinks,
-           industryIdentifiers: bookInfo.industryIdentifiers,
-           pageCount: bookInfo.pageCount,
-           publishedDate: bookInfo.publishedDate,
-           publisher: bookInfo.publisher,
-         };
-       });
+        return {
+          title: bookInfo.title,
+          subtitle: bookInfo.subtitle,
+          authors: bookInfo.authors,
+          description: bookInfo.description,
+          categories: bookInfo.categories,
+          imageLinks: bookInfo.imageLinks,
+          industryIdentifiers: bookInfo.industryIdentifiers,
+          pageCount: bookInfo.pageCount,
+          publishedDate: bookInfo.publishedDate,
+          publisher: bookInfo.publisher,
+        };
+      });
 
-     bookResults = booksList;
-   } else {
-     bookResults = null;
-   }
+    bookResults = booksList;
+  } else {
+    bookResults = null;
+  }
 
-   return bookResults;
+  return bookResults;
 }
-
-

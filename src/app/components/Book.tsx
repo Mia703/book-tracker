@@ -18,7 +18,7 @@ export default function Book({ book }: BookProps) {
             priority={true}
           />
         ) : (
-          <div className="book-image border-primary-black max-w-[100px] min-w-[80px] border-1 p-2 md:w-[100px]">
+          <div className="book-image border-primary-black border-1 p-2 h-50 flex flex-row items-center w-full">
             No image available
           </div>
         )}

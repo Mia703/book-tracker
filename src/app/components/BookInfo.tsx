@@ -31,8 +31,8 @@ export default function BookInfo({
               className="book-image h-auto w-full"
             />
           ) : (
-            <div className="book-image border-primary-black max-w-[100px] min-w-[80px] border-1 p-2 md:w-[100px]">
-              No image available
+            <div className="book-image border-primary-black flex h-60 w-full flex-col items-center justify-center border-1 bg-white p-4 text-center">
+              <p>No image available</p>
             </div>
           )}
         </div>

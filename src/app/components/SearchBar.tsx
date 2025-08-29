@@ -1,12 +1,19 @@
 "use client";
+import {
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetClose,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Book, BooksList } from "@/app/types/types";
 import { useFormik } from "formik";
-import { LogOut, Search } from "lucide-react";
+import { LogOut, Plus, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useState } from "react";
-import { searchBooks_Top5 } from "../utils/utils";
+import { searchBooks_Top5 } from "../pages/utils/utils";
 import SearchResults from "./SearchResults";
 
 type SearchBarProps = {
@@ -88,8 +95,27 @@ export default function SearchBar({ setResults }: SearchBarProps) {
           )}
         </div>
 
-        {/* LOGOUT BUTTON */}
         <div className="buttons-wrapper col-span-2 row-1 flex flex-row justify-end gap-4">
+          {/* CREATE YOUR OWN BOOK */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button className="pink cursor-pointer">
+                <Plus />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="overflow-y-scroll p-6">
+              {/* TODO: create your own book here */}
+              <SheetFooter className="p-0">
+                <SheetClose asChild>
+                  <Button className="bg-primary-black w-full cursor-pointer">
+                    Close
+                  </Button>
+                </SheetClose>
+              </SheetFooter>
+            </SheetContent>
+          </Sheet>
+
+          {/* LOGOUT BUTTON */}
           <Button
             type="button"
             id="logout-btn"

@@ -1,7 +1,4 @@
 "use client";
-import MainGrid from "@/app/components/MainGrid";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,12 +6,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useFormik } from "formik";
 import { AlertCircleIcon } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import MainGrid from "@/app/components/MainGrid";
+import Link from "next/link";
 
 export default function Signup() {
   const [alert, setAlert] = useState("");
@@ -38,6 +38,7 @@ export default function Signup() {
           }),
         });
 
+        const data = await response.json();
         if (response.ok) {
           window.sessionStorage.setItem(
             "user",
@@ -50,9 +51,11 @@ export default function Signup() {
 
           router.push("/pages/library");
         } else {
-          const data = await response.json();
-          setAlert(data.message);
-          console.error(`Error ${response.status}`, data.message);
+          setAlert(data.message.clientMessage);
+          console.error(
+            `Error ${response.status}`,
+            data.message.developerMessage,
+          );
         }
       }
     },
@@ -61,13 +64,13 @@ export default function Signup() {
   return (
     <MainGrid>
       <section
-        id="login"
+        id="signup"
         className="col-span-4 flex h-dvh flex-col content-center justify-center p-4 md:col-start-2 lg:col-start-5"
       >
         <Card className="bg-primary-light-pink">
           <CardHeader>
             <CardTitle className="text-center">
-              <h1>Signup</h1>
+              <h1 className="text-xl">Signup</h1>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -111,7 +114,6 @@ export default function Signup() {
             {alert && (
               <Alert variant={"destructive"}>
                 <AlertCircleIcon />
-                <AlertTitle>Unable to Signup</AlertTitle>
                 <AlertDescription>{alert}</AlertDescription>
               </Alert>
             )}

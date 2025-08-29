@@ -47,6 +47,8 @@ button.pink:hover {
 
 	overflow-x: auto;
 	overscroll-behavior-inline: contain;
+
+	padding-bottom: 1rem;;
 }
 
 /* =================== media queries =================== */
