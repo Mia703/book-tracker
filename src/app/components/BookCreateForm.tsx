@@ -58,23 +58,11 @@ export default function BookCreateForm({ setResults }: BookCreateFormProps) {
         const user = JSON.parse(userData);
 
         const book: Book = {
-          title: values.title
-            .split(" ")
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(" "),
-          subtitle: values.subtitle
-            .split(" ")
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(" "),
-          authors: values.authors
-            .replace(/\b\w/g, (c) => c.toUpperCase())
-            .split(",")
-            .map((s) => s.trim()),
+          title: values.title.toLowerCase(),
+          subtitle: values.subtitle.toLowerCase(),
+          authors: [values.authors.toLowerCase()],
           description: values.description,
-          categories: values.categories
-            .replace(/\b\w/g, (c) => c.toUpperCase())
-            .split(",")
-            .map((s) => s.trim()),
+          categories: [values.categories.toLowerCase()],
           imageLinks: {
             smallThumbnail: values.bookImage,
             thumbnail: values.bookImage,
@@ -104,6 +92,21 @@ export default function BookCreateForm({ setResults }: BookCreateFormProps) {
         };
 
         console.log("book", book, "userInfo", userInfo);
+
+        const response = await fetch("/pages/api/books/createBook", {
+          method: "POST",
+          headers: { "Content-type": "application/json" },
+          body: JSON.stringify(
+            book,
+            userInfo,
+          ),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // TODO: do something...
+        }
       }
     },
   });
