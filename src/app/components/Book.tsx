@@ -9,6 +9,8 @@ export default function Book({ book }: BookProps) {
   return (
     <div className="book cursor-pointer">
       <div className="book-image-wrapper mb-2 h-auto min-w-[8rem]">
+       
+        {/* FIXME: make sure the imageLink work */}
         {book.imageLinks?.smallThumbnail ? (
           <Image
             src={book.imageLinks?.smallThumbnail}

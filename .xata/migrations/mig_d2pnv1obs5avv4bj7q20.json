@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_d2pnv1obs5avv4bj7q20",
+    "operations": [
+      {
+        "add_column": {
+          "table": "Books",
+          "column": {
+            "name": "googleBook",
+            "type": "bool",
+            "comment": "",
+            "default": "'true'"
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_d2pnv1obs5avv4bj7q20",
+  "parent": "mig_d2pnmeobs5avv4bj7q00",
+  "schema": "public",
+  "startedAt": "2025-08-30T22:47:36.129489Z"
+}

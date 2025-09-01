@@ -3,28 +3,31 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const { xataID } = await request.json();
+    const { bookId } = await request.json();
 
-    if (!xataID) {
+    if (!bookId) {
       return NextResponse.json(
         {
           message: {
-            message: "deleteBook: Xata ID is required",
-            type: "error",
+            developerMessage: "deleteBook: Book is required",
+            clientMessage: "The book is required. Please try again.",
+            messageType: "bad",
           },
         },
         { status: 404 },
       );
     }
 
-    const deleteBook = await xata.db.Books.delete(xataID);
+    const deleteBook = await xata.db.Books.delete(bookId);
 
     if (!deleteBook) {
       return NextResponse.json(
         {
           message: {
-            message: "deleteBook: Could not delete book",
-            type: "error",
+            developerMessage:
+              "deleteBook: Could not delete book. Not found in db.",
+            clientMessage: "There was an error. Please try again.",
+            messageType: "bad",
           },
         },
         { status: 404 },
@@ -32,13 +35,25 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(
-      { message: { message: "deleteBook: Deleted book", type: "delete" } },
+      {
+        message: {
+          developerMessage: "Success",
+          clientMessage: "Book successfully removed",
+        },
+        messageType: "good",
+      },
       { status: 200 },
     );
   } catch (error) {
     console.log("Error", error);
     return NextResponse.json(
-      { message: { message: "Internal server error.", type: "error" } },
+      {
+        message: {
+          developerMessage: "deleteBook: Internal server error.",
+          clientMessage: "There was an error. Please try again.",
+          messageType: "bad",
+        },
+      },
       { status: 500 },
     );
   }

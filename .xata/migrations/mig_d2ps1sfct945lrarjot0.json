@@ -1,0 +1,22 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_d2ps1sfct945lrarjot0",
+    "operations": [
+      {
+        "alter_column": {
+          "up": "\"googleBookId\"",
+          "down": "\"googleBookId\"",
+          "table": "Books",
+          "column": "googleBookId",
+          "nullable": true
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_d2ps1sfct945lrarjot0",
+  "parent": "mig_d2pnvl7ct945lrarjodg",
+  "schema": "public",
+  "startedAt": "2025-08-31T03:26:42.105376Z"
+}

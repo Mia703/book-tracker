@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_d2p68mvct945lrarjme0",
+    "operations": [
+      {
+        "add_column": {
+          "table": "CreatedBooks",
+          "column": {
+            "name": "category",
+            "type": "text",
+            "comment": "",
+            "nullable": true
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_d2p68mvct945lrarjme0",
+  "parent": "mig_d2p652nct945lrarjma0",
+  "schema": "public",
+  "startedAt": "2025-08-30T02:39:24.359959Z"
+}

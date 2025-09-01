@@ -13,80 +13,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { useFormik } from "formik";
 import { Dispatch, SetStateAction, useState } from "react";
 import * as Yup from "yup";
-import { Book, BookInformation, BooksList, UserInfo } from "../types/types";
-import { Alert, AlertTitle } from "@/components/ui/alert";
-import { Check, CircleQuestionMark, X } from "lucide-react";
+import { Book, LibraryList } from "../types/types";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Check, X } from "lucide-react";
+import { modifyLibraryCache } from "../pages/utils/utils";
 
 type BookFormProps = {
   book: Book;
-  userInfo: UserInfo | null;
-  setResults: Dispatch<SetStateAction<BooksList>>;
+  setCache: Dispatch<SetStateAction<LibraryList>>;
 };
 
-export default function BookForm({
-  book,
-  userInfo,
-  setResults,
-}: BookFormProps) {
-  const [displayAlert, setDisplayAlert] = useState<boolean | null>(null);
-  const [alertType, setAlertType] = useState("");
-
-  function formatAlert(alertType: string) {
-    switch (alertType) {
-      case "update":
-        return (
-          <Alert className="border-green-600">
-            <Check className="stroke-green-600" />
-            <AlertTitle className="text-green-600">
-              The book has been updated.
-            </AlertTitle>
-          </Alert>
-        );
-      case "new entry":
-        return (
-          <Alert className="border-green-600">
-            <Check className="stroke-green-600" />
-            <AlertTitle className="text-green-600">
-              The book has been added to your library.
-            </AlertTitle>
-          </Alert>
-        );
-      case "error":
-        return (
-          <Alert className="border-red-600">
-            <X className="stroke-red-600" />
-            <AlertTitle className="text-red-600">
-              There was an error. Please try again.
-            </AlertTitle>
-          </Alert>
-        );
-      case "delete":
-        return (
-          <Alert className="border-red-600">
-            <Check className="stroke-red-600" />
-            <AlertTitle className="text-red-600">
-              The book as been deleted.
-            </AlertTitle>
-          </Alert>
-        );
-      default:
-        return (
-          <Alert className="border-neutral-600">
-            <CircleQuestionMark className="stroke-neutral-600" />
-            <AlertTitle className="text-neutral-600">
-              Alert could not be identified.
-            </AlertTitle>
-          </Alert>
-        );
-    }
-  }
-
-  function isReadingProgress(progress: string) {
-    if (["wishlist", "reading", "finished", "dnf"].includes(progress)) {
-      return progress as keyof BooksList;
-    }
-    return undefined;
-  }
+export default function BookForm({ book, setCache }: BookFormProps) {
+  const [alert, setAlert] = useState<{
+    messageType: string;
+    message: string;
+  } | null>(null);
 
   // get the current date in the format of YYYY-MM-DD
   const today = new Date().toISOString().slice(0, 10);
@@ -97,118 +38,83 @@ export default function BookForm({
 
   const formik = useFormik({
     initialValues: {
-      readingProgress: userInfo?.readingProgress || "",
-      rating: userInfo?.rating || "",
-      readingFormat: userInfo?.readingFormat || "",
-      startDate: userInfo?.startDate
-        ? new Date(userInfo.startDate).toISOString().slice(0, 10)
+      readingProgress: book.userInfo?.readingProgress ?? "",
+      rating: book.userInfo?.rating ?? "",
+      readingFormat: book.userInfo?.readingFormat ?? "",
+      startDate: book.userInfo?.startDate
+        ? new Date(book.userInfo.startDate).toISOString().slice(0, 10)
         : "",
-      endDate: userInfo?.endDate
-        ? new Date(userInfo.endDate).toISOString().slice(0, 10)
+      endDate: book.userInfo?.endDate
+        ? new Date(book.userInfo.endDate).toISOString().slice(0, 10)
         : "",
-      comments: userInfo?.comments || "",
+      comments: book.userInfo?.comments ?? "",
     },
     validationSchema: formValidation,
     onSubmit: async (values) => {
       const userData = window.sessionStorage.getItem("user");
+
       if (userData) {
         const user = JSON.parse(userData);
 
-        const response = await fetch("/pages/api/books/setBooks", {
+        // SAVE/UPDATE THE BOOK IN DB
+        const response = await fetch("/pages/api/books/setBook", {
           method: "POST",
           headers: { "Content-type": "application/json" },
           body: JSON.stringify({
-            readingProgress: values.readingProgress,
-            rating: values.rating || "empty",
-            readingFormat: values.readingFormat || "empty",
-            startDate: values.startDate || "empty",
-            endDate: values.endDate || "empty",
-            comments: values.comments || "empty",
-            bookImage:
-              `${book.imageLinks?.thumbnail}` ||
-              `${book.imageLinks?.smallThumbnail}` ||
-              "empty",
-            // filter for ISBN_13 first, if no data, filter for then ISBN_10, else "empty"
-            isbn:
-              book.industryIdentifiers
-                ?.filter((item) => item.type === "ISBN_13")
-                .map((item) => item.identifier)
-                .join() ||
-              book.industryIdentifiers
-                ?.filter((item) => item.type === "ISBN_10")
-                .map((item) => item.identifier)
-                .join() ||
-              "empty",
-            userEmail: user.email,
+            book: book,
+            userInfo: {
+              readingProgress: values.readingProgress,
+              readingFormat: values.readingFormat,
+              startDate: values.startDate,
+              endDate: values.endDate,
+              rating: values.rating,
+              comments: values.comments,
+              userEmail: user.email,
+              googleBook: book.googleBookId ? true : false,
+            },
           }),
         });
 
+        const readingProgress = book.userInfo?.readingProgress;
+
+        // UPDATE THE BOOK'S USER INFORMATION
+        book.userInfo = {
+          readingProgress: values.readingProgress,
+          readingFormat: values.readingFormat,
+          startDate: values.startDate,
+          endDate: values.endDate,
+          rating: values.rating,
+          comments: values.comments,
+          userEmail: user.email,
+          googleBook: book.googleBookId ? true : false,
+        };
+
         const data = await response.json();
-        const updatedUserInfo: UserInfo = JSON.parse(data.message.userInfo);
 
-        if (response.ok) {
-          setResults((prev) => {
-            const currentKey = Object.keys(prev).find((key) =>
-              prev[key as keyof BooksList].some(
-                (item: BookInformation) => item.book.title === book.title,
-              ),
-            ) as keyof BooksList | undefined;
-
-            const targetKey =
-              updatedUserInfo.readingProgress === "wishlist"
-                ? "wishlist"
-                : updatedUserInfo.readingProgress === "reading"
-                  ? "reading"
-                  : updatedUserInfo.readingProgress === "finished"
-                    ? "finished"
-                    : "dnf";
-
-            const newState = { ...prev };
-
-            // 1. If the book exists in another list, remove it from there
-            if (currentKey) {
-              newState[currentKey] = newState[currentKey].filter(
-                (item: BookInformation) => item.book.title !== book.title,
-              );
-            }
-
-            // 2. Check if it already exists in the target list
-            const existingIndex = newState[targetKey].findIndex(
-              (item: BookInformation) => item.book.title === book.title,
-            );
-
-            if (existingIndex !== -1) {
-              // Update book + userInfo
-              newState[targetKey] = newState[targetKey].map((item, index) =>
-                index === existingIndex
-                  ? {
-                      ...item,
-                      book: { ...item.book, ...book },
-                      userInfo: { ...item.userInfo, ...updatedUserInfo },
-                    }
-                  : item,
-              );
-            } else {
-              // Add new if not found
-              newState[targetKey] = [
-                ...newState[targetKey],
-                { book: book, userInfo: updatedUserInfo },
-              ];
-            }
-
-            // sort the target list by userInfo.xata_createdat (newest first)
-            newState[targetKey] = newState[targetKey].sort(
-              (a, b) =>
-                new Date(b.userInfo.xata_createdat).getTime() -
-                new Date(a.userInfo.xata_createdat).getTime(),
-            );
-
-            return newState;
-          });
+        if (response.ok && data.message.messageType === "good") {
+          // UPDATE BOOK'S XATA INFORMATION
+          const xataData = JSON.parse(data.message.xataData);
+          book.userInfo.xata_createdat = xataData.xata_createdat;
+          book.userInfo.xata_id = xataData.xata_id;
+          book.userInfo.xata_updatedat = xataData.xata_updatedat;
+          book.userInfo.xata_version = xataData.xata_version;
         }
 
-        setAlertType(data.message.type);
-        setDisplayAlert(true);
+        await new Promise((res) => setTimeout(res, 200));
+
+        // ADD BOOK TO CACHE
+        modifyLibraryCache(
+          setCache,
+          book.userInfo ? "update" : "add",
+          book,
+          readingProgress as keyof LibraryList,
+          values.readingProgress as keyof LibraryList,
+        );
+
+        setAlert({
+          messageType: data.message.messageType,
+          message: data.message.clientMessage,
+        });
       }
     },
   });
@@ -233,8 +139,8 @@ export default function BookForm({
             <SelectValue placeholder="Reading Progress *" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="reading">Reading</SelectItem>
             <SelectItem value="wishlist">Wish List</SelectItem>
+            <SelectItem value="reading">Reading</SelectItem>
             <SelectItem value="finished">Finished</SelectItem>
             <SelectItem value="dnf">DNF</SelectItem>
           </SelectContent>
@@ -318,54 +224,61 @@ export default function BookForm({
           />
         </div>
 
-        {displayAlert && (
-          <div className="alert-wrapper">{formatAlert(alertType)}</div>
-        )}
+        {alert &&
+          (alert.messageType == "bad" ? (
+            <Alert variant={"destructive"}>
+              <X />
+              <AlertDescription>{alert.message}</AlertDescription>
+            </Alert>
+          ) : (
+            <Alert variant={"default"}>
+              <Check />
+              <AlertDescription className="text-primary-black">
+                {alert.message}
+              </AlertDescription>
+            </Alert>
+          ))}
 
         <div className="button-wrapper flex flex-row gap-2">
-          {userInfo && (
+          {
             <Button
               type="button"
               className="cursor-pointer"
               onClick={async () => {
+                console.log("delete book", book);
+
                 const response = await fetch("/pages/api/books/deleteBook", {
                   method: "POST",
                   headers: { "Content-type": "application/json" },
-                  body: JSON.stringify({
-                    xataID: userInfo.xata_id,
-                  }),
+                  body: JSON.stringify({ bookId: book.userInfo?.xata_id }),
                 });
 
-                const data = await response.json();
-
                 if (response.ok) {
-                  setResults((prev) => {
-                    const currentKey = isReadingProgress(
-                      userInfo.readingProgress,
-                    );
+                  const data = await response.json();
 
-                    const newState = { ...prev };
+                  await new Promise((res) => setTimeout(res, 200));
 
-                    // 1. Remove the book from the list
-                    if (currentKey) {
-                      newState[currentKey] = newState[currentKey].filter(
-                        (item: BookInformation) =>
-                          item.book.title !== book.title,
-                      );
-                    }
+                  // REMOVE BOOK TO CACHE
+                  modifyLibraryCache(
+                    setCache,
+                    "delete",
+                    book,
+                    book.userInfo?.readingProgress as keyof LibraryList,
+                    book.userInfo?.readingProgress as keyof LibraryList,
+                  );
 
-                    return newState;
+                  setAlert({
+                    messageType: data.message.messageType,
+                    message: data.message.clientMessage,
                   });
-                  setAlertType(data.message.type);
-                  setDisplayAlert(true);
                 }
               }}
             >
               Delete
             </Button>
-          )}
+          }
           <Button type="submit" className="pink flex-1 cursor-pointer">
-            {userInfo ? "Update Book" : "Save Book"}
+            {book.userInfo ? "Update" : "Save Book"}
           </Button>
         </div>
       </form>

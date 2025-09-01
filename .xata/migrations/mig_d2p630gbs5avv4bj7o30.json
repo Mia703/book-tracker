@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_d2p630gbs5avv4bj7o30",
+    "operations": [
+      {
+        "add_column": {
+          "table": "CreatedBooks",
+          "column": {
+            "name": "subtitle",
+            "type": "text",
+            "comment": "",
+            "nullable": true
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_d2p630gbs5avv4bj7o30",
+  "parent": "mig_d2p6049abui1ml6v88t0",
+  "schema": "public",
+  "startedAt": "2025-08-30T02:27:25.34993Z"
+}

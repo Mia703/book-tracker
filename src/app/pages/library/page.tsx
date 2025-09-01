@@ -5,16 +5,17 @@ import BookScreen from "@/app/components/BookScreen";
 import Dropdown from "@/app/components/Dropdown";
 import MainGrid from "@/app/components/MainGrid";
 import SearchBar from "@/app/components/SearchBar";
-import { BooksList, UserInfo } from "@/app/types/types";
-import { searchBook_ISBN } from "@/app/pages/utils/utils";
+import { Book as BookType, LibraryList } from "@/app/types/types";
 import { Button } from "@/components/ui/button";
 import { Accordion } from "@radix-ui/react-accordion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { fetchGoogleBooks__ByReadingProgress } from "../utils/utils";
 
 export default function Library() {
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
-  const [results, setResults] = useState<BooksList>({
+
+  const [cache, setCache] = useState<LibraryList>({
     wishlist: [],
     reading: [],
     finished: [],
@@ -23,123 +24,74 @@ export default function Library() {
 
   const router = useRouter();
 
-  // TODO: move to a separate file
   useEffect(() => {
-    async function getAllBooksByReadingProgress(
-      userEmail: string,
-      readingProgress: string,
-    ) {
-      const response = await fetch(
-        "/pages/api/books/getAllBooksByReadingProgress",
-        {
-          method: "POST",
-          headers: { "Content-type": "application/json" },
-          body: JSON.stringify({
-            userEmail: userEmail,
-            readingProgress,
-          }),
-        },
-      );
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // return the list of books from the user's db
-        const userBooksListData = data.message.booksList;
-        const userBooksList: UserInfo[] = JSON.parse(userBooksListData);
-        return userBooksList;
-      }
-      return null;
-    }
-
     const userData = window.sessionStorage.getItem("user");
 
     if (userData) {
+      const user = JSON.parse(userData);
       setLoggedIn(true);
 
-      const cached = window.sessionStorage.getItem("userBookData");
-
-      if (cached) {
-        setResults(JSON.parse(cached));
-      } else {
-        const user = JSON.parse(userData);
-
-        const allResults: BooksList = {
-          wishlist: [],
-          reading: [],
-          finished: [],
-          dnf: [],
-        };
-
-        // Because of the 'as const', ts infers this array as a tuple of literal types instead of string[]
-        const readingProgress = [
+      async function getAllBooks(userEmail: string, batchSize: number) {
+        // Option 1
+        const wishList = await fetchGoogleBooks__ByReadingProgress(
           "wishlist",
+          userEmail,
+          batchSize,
+        );
+        const readingList = await fetchGoogleBooks__ByReadingProgress(
           "reading",
+          userEmail,
+          batchSize,
+        );
+        const finishedList = await fetchGoogleBooks__ByReadingProgress(
           "finished",
+          userEmail,
+          batchSize,
+        );
+        const dnfList = await fetchGoogleBooks__ByReadingProgress(
           "dnf",
-        ] as const;
+          userEmail,
+          batchSize,
+        );
 
-        // Use Promise.all to wait for all readingProgress fetches
-        Promise.all(
-          readingProgress.map(async (progress) => {
-            await new Promise((res) => setTimeout(res, 200));
+        // Option 2
+        // const [wishList, readingList, finishedList, dnfList] =
+        //   await Promise.all([
+        //     fetchGoogleBooks__ByReadingProgress(
+        //       "wishlist",
+        //       userEmail,
+        //       batchSize,
+        //     ),
+        //     fetchGoogleBooks__ByReadingProgress(
+        //       "reading",
+        //       userEmail,
+        //       batchSize,
+        //     ),
+        //     fetchGoogleBooks__ByReadingProgress(
+        //       "finished",
+        //       userEmail,
+        //       batchSize,
+        //     ),
+        //     fetchGoogleBooks__ByReadingProgress("dnf", userEmail, batchSize),
+        //   ]);
 
-            const userBooksByReadingProgress =
-              await getAllBooksByReadingProgress(user.email, progress);
-
-            if (
-              userBooksByReadingProgress &&
-              userBooksByReadingProgress.length != 0
-            ) {
-              // forEach does not await async functions, so it returns values before the async can finish
-              // for....of respects await, and map requires an await Promise.all
-              for (const userBook of userBooksByReadingProgress) {
-                if (userBook.isbn) {
-                  // await each API call sequentially with a delay between each all to avoid spamming the Google Books API
-                  // Note: if you call the API too quickly and too many times, a 429 (Too Many Requests) Error returns
-                  await new Promise((res) => setTimeout(res, 200));
-
-                  // search for the book using the Google Books API
-                  // returns an array with a length of 1
-                  const googleBooks = await searchBook_ISBN(userBook.isbn);
-
-                  if (googleBooks) {
-                    const googleBook = googleBooks[0];
-
-                    // save the book
-                    allResults[progress].push({
-                      userInfo: userBook,
-                      book: googleBook,
-                    });
-                  }
-                } else {
-                  // TODO: handle books without ISBN
-                }
-              }
-            }
-          }),
-        ).then(() => {
-          window.sessionStorage.setItem(
-            "userBookData",
-            JSON.stringify(allResults),
-          );
-          setResults(allResults);
+        setCache({
+          wishlist: wishList,
+          reading: readingList,
+          finished: finishedList,
+          dnf: dnfList,
         });
       }
+      getAllBooks(user.email, 10);
     } else {
       setLoggedIn(false);
     }
   }, []);
 
-  useEffect(() => {
-    if (results) {
-      window.sessionStorage.setItem("userBookData", JSON.stringify(results));
-    }
-  }, [results]);
-
   return (
     <MainGrid>
-      <SearchBar setResults={setResults} />
+      <SearchBar setCache={setCache} />
+
       {loggedIn ? (
         <section
           id="accordion-section"
@@ -149,44 +101,17 @@ export default function Library() {
             <Accordion
               type="single"
               collapsible
-              defaultValue="accordion-item-0"
+              defaultValue="accordion-item-1"
             >
-              <Dropdown name="Reading" index={0}>
-                {results && results["reading"].length != 0 ? (
+              <Dropdown name="Wish List" index={0}>
+                {cache && cache["wishlist"].length != 0 ? (
                   <div className="books-wrapper horizontal-media-scroller">
-                    {results["reading"].map((data, index) => (
+                    {cache["wishlist"].map((data: BookType, index: number) => (
                       <BookScreen
                         key={index}
-                        screenTrigger={<Book key={index} book={data.book} />}
+                        screenTrigger={<Book key={index} book={data} />}
                       >
-                        <BookInfo
-                          book={data.book}
-                          userInfo={data.userInfo}
-                          setResults={setResults}
-                        />
-                      </BookScreen>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-center">
-                    You&apos;re not reading any books yet!
-                  </p>
-                )}
-              </Dropdown>
-
-              <Dropdown name="Wish List" index={1}>
-                {results && results["wishlist"].length != 0 ? (
-                  <div className="books-wrapper horizontal-media-scroller">
-                    {results["wishlist"].map((data, index) => (
-                      <BookScreen
-                        key={index}
-                        screenTrigger={<Book key={index} book={data.book} />}
-                      >
-                        <BookInfo
-                          book={data.book}
-                          userInfo={data.userInfo}
-                          setResults={setResults}
-                        />
+                        <BookInfo book={data} setCache={setCache} />
                       </BookScreen>
                     ))}
                   </div>
@@ -197,19 +122,34 @@ export default function Library() {
                 )}
               </Dropdown>
 
-              <Dropdown name="Finished" index={2}>
-                {results && results["finished"].length != 0 ? (
+              <Dropdown name="Reading" index={1}>
+                {cache && cache["reading"].length != 0 ? (
                   <div className="books-wrapper horizontal-media-scroller">
-                    {results["finished"].map((data, index) => (
+                    {cache["reading"].map((data: BookType, index: number) => (
                       <BookScreen
                         key={index}
-                        screenTrigger={<Book key={index} book={data.book} />}
+                        screenTrigger={<Book key={index} book={data} />}
                       >
-                        <BookInfo
-                          book={data.book}
-                          userInfo={data.userInfo}
-                          setResults={setResults}
-                        />
+                        <BookInfo book={data} setCache={setCache} />
+                      </BookScreen>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center">
+                    You&apos;re not reading any books yet!
+                  </p>
+                )}
+              </Dropdown>
+
+              <Dropdown name="Finished" index={2}>
+                {cache && cache["finished"].length != 0 ? (
+                  <div className="books-wrapper horizontal-media-scroller">
+                    {cache["finished"].map((data: BookType, index: number) => (
+                      <BookScreen
+                        key={index}
+                        screenTrigger={<Book key={index} book={data} />}
+                      >
+                        <BookInfo book={data} setCache={setCache} />
                       </BookScreen>
                     ))}
                   </div>
@@ -221,18 +161,14 @@ export default function Library() {
               </Dropdown>
 
               <Dropdown name="DNF" index={3}>
-                {results && results["dnf"].length != 0 ? (
+                {cache && cache["dnf"].length != 0 ? (
                   <div className="books-wrapper horizontal-media-scroller">
-                    {results["dnf"].map((data, index) => (
+                    {cache["dnf"].map((data: BookType, index: number) => (
                       <BookScreen
                         key={index}
-                        screenTrigger={<Book key={index} book={data.book} />}
+                        screenTrigger={<Book key={index} book={data} />}
                       >
-                        <BookInfo
-                          book={data.book}
-                          userInfo={data.userInfo}
-                          setResults={setResults}
-                        />
+                        <BookInfo book={data} setCache={setCache} />
                       </BookScreen>
                     ))}
                   </div>
@@ -259,7 +195,7 @@ export default function Library() {
               router.push("/");
             }}
           >
-            Back go Login
+            Back to Login
           </Button>
         </section>
       )}

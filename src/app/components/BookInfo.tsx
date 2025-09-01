@@ -1,19 +1,14 @@
 import Image from "next/image";
-import { Book, BooksList, UserInfo } from "../types/types";
+import { Book, LibraryList } from "../types/types";
 import { Dispatch, SetStateAction, useState } from "react";
 import BookForm from "./BookForm";
 
 type BookInfoProps = {
   book: Book;
-  userInfo: UserInfo | null;
-  setResults: Dispatch<SetStateAction<BooksList>>;
+  setCache: Dispatch<SetStateAction<LibraryList>>;
 };
 
-export default function BookInfo({
-  book,
-  userInfo,
-  setResults,
-}: BookInfoProps) {
+export default function BookInfo({ book, setCache }: BookInfoProps) {
   const [toggleBookLength, setToggleBookLength] = useState<boolean>(true);
 
   return (
@@ -55,7 +50,8 @@ export default function BookInfo({
             (book.description.length > 270 ? (
               toggleBookLength ? (
                 <p className="book-description text-sm">
-                  {book.description.slice(0, 270).concat("...")}{" "}
+                  {book.description.slice(0, 270).concat("...")}
+                  <br />
                   <button
                     type="button"
                     className="cursor-pointer text-sm font-bold underline"
@@ -68,7 +64,8 @@ export default function BookInfo({
                 </p>
               ) : (
                 <p className="book-description text-sm">
-                  {book.description}{" "}
+                  {book.description}
+                  <br />
                   <button
                     type="button"
                     className="cursor-pointer text-sm font-bold underline"
@@ -81,7 +78,7 @@ export default function BookInfo({
                 </p>
               )
             ) : (
-              <p className="book-description text-sm">book.description</p>
+              <p className="book-description text-sm">{book.description}</p>
             ))}
         </div>
 
@@ -93,9 +90,13 @@ export default function BookInfo({
             <span className="font-normal">{book.publisher}</span>
           </p>
           <p className="font-bold capitalize">
-            Release date
+            Published date
             <br />
-            <span className="font-normal">{book.publishedDate}</span>
+            <span className="font-normal">
+              {book.publishedDate
+                ? new Date(book.publishedDate).toDateString()
+                : ""}
+            </span>
           </p>
           <p className="font-bold capitalize">
             No. of pages
@@ -106,10 +107,14 @@ export default function BookInfo({
             ISBN
             <br />
             <span className="font-normal wrap-break-word">
-              {/* filter for ISBN_13, which returns another array, then map through it */}
+              {/* filter for ISBN_13,then ISBN_10, which returns another array, then map through it, else returns "" */}
               {book.industryIdentifiers
                 ?.filter((item) => item.type === "ISBN_13")
-                .map((item) => item.identifier) || ""}
+                .map((item) => item.identifier) ||
+                book.industryIdentifiers
+                  ?.filter((item) => item.type === "ISBN_10")
+                  .map((item) => item.identifier) ||
+                ""}
             </span>
           </p>
           <p className="col-span-2 font-bold capitalize">
@@ -121,7 +126,7 @@ export default function BookInfo({
       </div>
 
       {/* BOOK FORM */}
-      <BookForm book={book} userInfo={userInfo} setResults={setResults} />
+      <BookForm book={book} setCache={setCache} />
     </div>
   );
 }

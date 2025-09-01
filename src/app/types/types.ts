@@ -1,39 +1,3 @@
-/**
- * Represents an outline of single book item retrieved from the Google Books API.
- *
- * @remarks
- * This interface models the structure of the `volumeInfo` object returned by Google Books.
- *
- * @property volumeInfo - Contains detailed information about the book, such as title, authors,
- * description, categories, images, identifiers, page count, publication date, and publisher.
- */
-interface GoogleBookItem {
-  volumeInfo: {
-    title: string;
-    subtitle?: string;
-    authors?: string[];
-    description?: string;
-    categories?: string[];
-    imageLinks?: {
-      smallThumbnail?: string;
-      thumbnail?: string;
-    };
-    industryIdentifiers?: {
-      type: string;
-      identifier: string;
-    }[];
-    pageCount?: number;
-    publishedDate?: string;
-    publisher?: string;
-  };
-}
-
-/**
- * Represents a series of GoogleBookItem(s)
- */
-export interface GoogleBooksResponse {
-  items: GoogleBookItem[];
-}
 
 /**
  * Represents a book with various metadata fields.
@@ -54,70 +18,43 @@ export interface GoogleBooksResponse {
  * @property publishedDate - The publication date of the book (optional).
  * @property publisher - The publisher of the book (optional).
  */
-export interface Book {
-  title: string;
+export type Book = {
+  googleBookId?: string;
+  title?: string;
   subtitle?: string;
   authors?: string[];
+  publisher?: string;
+  publishedDate?: string;
   description?: string;
-  categories?: string[];
-  imageLinks?: {
-    smallThumbnail?: string;
-    thumbnail?: string;
-  };
   industryIdentifiers?: {
     type: string;
     identifier: string;
   }[];
   pageCount?: number;
-  publishedDate?: string;
-  publisher?: string;
-}
-/**
- * Represents book information stored in the Xata DB.
- * Contains information used to track a user's reading progress.
- *
- * @property readingProgress - a selection of one the following: ["reading", "wishlist", "finished", "dnf"]
- * @property isbn - The book's ISBN number
- * @property rating - The user's rating of the book, from one of the following selection:
- * ["masterpiece", "great", "good", "average", "appalling"]
- * @property readingFormat - How the user is reading the book, from one of the following selection:
- * ["eBook", "paper", "libraryLoan", "audio"]
- * @property startDate - The date the user started reading the book
- * @property endDate - The date the user finished reading the book
- * @property user - The user's email, which is attached to the user's login-information
- * @property comments - Any comments the user has about the book
- * @property bookImage - URL for the thumbnail image of the book, from the Google Books API
- *
- * Information provided by Xata DB:
- * @property xata_id
- * @property xata_createdat
- * @property xata_updatedat
- * @property xata_version
- */
-export interface UserInfo {
-  readingProgress: string;
-  isbn: string | null;
-  rating: string | null;
-  readingFormat: string | null;
-  startDate: string | null;
-  endDate: string | null;
-  user: string;
-  comments: string | null;
-  bookImage: string | null;
-  xata_id: string;
-  xata_createdat: string;
-  xata_updatedat: string;
-  xata_version: number;
+  categories?: string[];
+  imageLinks?: {
+    smallThumbnail?: string;
+    thumbnail?: string;
+  };
+  userInfo?: {
+    readingProgress?: string;
+    readingFormat?: string;
+    startDate?: string;
+    endDate?: string;
+    rating?: string;
+    comments?: string;
+    userEmail: string;
+    googleBook?: boolean;
+    xata_createdat?: string;
+    xata_id?: string;
+    xata_updatedat?: string;
+    xata_version?: number;
+  };
 }
 
-export type BookInformation = {
-  book: Book;
-  userInfo: UserInfo;
-};
-
-export type BooksList = {
-  wishlist: BookInformation[];
-  reading: BookInformation[];
-  finished: BookInformation[];
-  dnf: BookInformation[];
-};
+export type LibraryList = {
+  wishlist: Book[];
+  reading: Book[];
+  finished: Book[];
+  dnf: Book[];
+}
