@@ -1,12 +1,12 @@
 import Image from "next/image";
 import { Book } from "../types/types";
 
-type ResultsList = {
+type SearchListProps = {
   book: Book;
   index: number;
 };
 
-export default function ResultsList({ book, index }: ResultsList) {
+export default function SearchList({ book, index }: SearchListProps) {
   return (
     <div
       key={index}
@@ -22,7 +22,7 @@ export default function ResultsList({ book, index }: ResultsList) {
             className="book-image h-auto w-full"
           />
         ) : (
-          <div className="book-image border-primary-black flex h-35 w-full flex-col justify-center border-1 p-2">
+          <div className="book-image border-primary-black flex h-35 w-full flex-col justify-center border-1 p-2 text-center">
             No image available
           </div>
         )}

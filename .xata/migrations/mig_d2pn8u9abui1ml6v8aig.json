@@ -1,0 +1,18 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_d2pn8u9abui1ml6v8aig",
+    "operations": [
+      {
+        "drop_table": {
+          "name": "Books"
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_d2pn8u9abui1ml6v8aig",
+  "parent": "mig_d2pn8dpabui1ml6v8ahg",
+  "schema": "public",
+  "startedAt": "2025-08-30T22:00:25.820819Z"
+}

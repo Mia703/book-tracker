@@ -5,30 +5,30 @@ import {
   SheetFooter,
   SheetClose,
   SheetTrigger,
-  SheetHeader,
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Book, BooksList } from "@/app/types/types";
+import { Book, LibraryList } from "@/app/types/types";
 import { useFormik } from "formik";
 import { LogOut, Plus, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useState } from "react";
-import { searchBooks_Top5 } from "../pages/utils/utils";
 import SearchResults from "./SearchResults";
 import BookCreateForm from "./BookCreateForm";
+import { fetchGoogleBooks } from "../pages/utils/utils";
 
 type SearchBarProps = {
-  setResults: Dispatch<SetStateAction<BooksList>>;
+  setCache: Dispatch<SetStateAction<LibraryList>>;
 };
 
-export default function SearchBar({ setResults }: SearchBarProps) {
-  const [bookResults, setBookResults] = useState<Book[] | null>(null);
-  const [searchToggle, setSearchToggle] = useState<boolean>(false);
+export default function SearchBar({ setCache }: SearchBarProps) {
+  const [searchResults, setSearchResults] = useState<Book[] | null>(null);
+  const [displaySearchResults, setDisplaySearchResults] =
+    useState<boolean>(false);
 
-  const router = useRouter();
+  const pageRouter = useRouter();
 
   const formik = useFormik({
     initialValues: {
@@ -36,9 +36,12 @@ export default function SearchBar({ setResults }: SearchBarProps) {
     },
     onSubmit: async (values) => {
       if (values.search !== "") {
-        const response = await searchBooks_Top5(values.search);
-        setBookResults(response);
-        setSearchToggle(true);
+        const searchResults = await fetchGoogleBooks(5, values.search);
+
+        if (searchResults) {
+          setSearchResults(searchResults);
+          setDisplaySearchResults(true);
+        }
       }
     },
   });
@@ -64,7 +67,7 @@ export default function SearchBar({ setResults }: SearchBarProps) {
               id="search-bar"
               placeholder="Search..."
               className={
-                searchToggle
+                displaySearchResults
                   ? "bg-primary-light-pink border-primary-dark-pink relative rounded-r-none rounded-bl-none border-2"
                   : "bg-primary-light-pink border-primary-dark-pink rounded-r-none border-2"
               }
@@ -74,7 +77,7 @@ export default function SearchBar({ setResults }: SearchBarProps) {
             />
             <Button
               className={
-                searchToggle
+                displaySearchResults
                   ? "pink rounded-l-none rounded-br-none hover:cursor-pointer"
                   : "pink rounded-l-none hover:cursor-pointer"
               }
@@ -84,16 +87,16 @@ export default function SearchBar({ setResults }: SearchBarProps) {
             </Button>
           </form>
 
-          {searchToggle && (
-            <SearchResults bookResults={bookResults} setResults={setResults} />
+          {displaySearchResults && (
+            <SearchResults bookList={searchResults} setCache={setCache} />
           )}
 
           {/* click on anything below the search bar to close the search results modal */}
-          {searchToggle && (
+          {displaySearchResults && (
             <div
               className="search-results-background fixed left-0 h-[100vh] w-[100vw]"
               onClick={() => {
-                setSearchToggle(false);
+                setDisplaySearchResults(false);
               }}
             ></div>
           )}
@@ -101,17 +104,20 @@ export default function SearchBar({ setResults }: SearchBarProps) {
 
         <div className="buttons-wrapper col-span-2 row-1 flex flex-row justify-end gap-4">
           {/* CREATE YOUR OWN BOOK */}
-          {/* TODO: would have to fix xata db to accommodate books */}
-          {/* <Sheet>
+          <Sheet>
             <SheetTrigger asChild>
               <Button className="pink cursor-pointer">
                 <Plus />
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="overflow-y-scroll p-6">
-              <SheetTitle className="text-xl text-center">Create a Book</SheetTitle>
-              <SheetDescription className="text-center">Can&apos;t find a book? Create your own!</SheetDescription>
-              <BookCreateForm setResults={setResults} />
+              <SheetTitle className="text-center text-xl">
+                Create a Book
+              </SheetTitle>
+              <SheetDescription className="text-center">
+                Can&apos;t find a book? Create your own!
+              </SheetDescription>
+              <BookCreateForm setCache={setCache} />
               <SheetFooter className="p-0">
                 <SheetClose asChild>
                   <Button className="bg-primary-black w-full cursor-pointer">
@@ -120,7 +126,7 @@ export default function SearchBar({ setResults }: SearchBarProps) {
                 </SheetClose>
               </SheetFooter>
             </SheetContent>
-          </Sheet> */}
+          </Sheet>
 
           {/* LOGOUT BUTTON */}
           <Button
@@ -130,7 +136,7 @@ export default function SearchBar({ setResults }: SearchBarProps) {
             onClick={() => {
               window.sessionStorage.removeItem("user");
               window.sessionStorage.removeItem("userBookData");
-              router.push("/");
+              pageRouter.push("/");
             }}
           >
             Logout <LogOut />

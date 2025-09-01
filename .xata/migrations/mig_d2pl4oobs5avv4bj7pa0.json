@@ -1,0 +1,19 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_d2pl4oobs5avv4bj7pa0",
+    "operations": [
+      {
+        "drop_column": {
+          "table": "CreatedBooks",
+          "column": "userInfo"
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_d2pl4oobs5avv4bj7pa0",
+  "parent": "mig_d2pjmknct945lrarjnu0",
+  "schema": "public",
+  "startedAt": "2025-08-30T19:34:59.598381Z"
+}

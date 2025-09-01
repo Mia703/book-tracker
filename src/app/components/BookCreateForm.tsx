@@ -13,16 +13,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { useFormik } from "formik";
 import { Dispatch, SetStateAction, useState } from "react";
 import * as Yup from "yup";
-import { Book, BookInformation, BooksList, UserInfo } from "../types/types";
-import { Alert, AlertTitle } from "@/components/ui/alert";
-import { Check, CircleQuestionMark, Subtitles, X } from "lucide-react";
-import { SelectGroup, SelectLabel } from "@radix-ui/react-select";
+import { Book, LibraryList } from "../types/types";
+import { capitaliseSentence, modifyLibraryCache } from "../pages/utils/utils";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Check, X } from "lucide-react";
 
 type BookCreateFormProps = {
-  setResults: Dispatch<SetStateAction<BooksList>>;
+  setCache: Dispatch<SetStateAction<LibraryList>>;
 };
 
-export default function BookCreateForm({ setResults }: BookCreateFormProps) {
+export default function BookCreateForm({ setCache }: BookCreateFormProps) {
+  const [alert, setAlert] = useState<{
+    messageType: string;
+    message: string;
+  } | null>(null);
+
   // get the current date in the format of YYYY-MM-DD
   const today = new Date().toISOString().slice(0, 10);
 
@@ -35,14 +40,14 @@ export default function BookCreateForm({ setResults }: BookCreateFormProps) {
       title: "",
       subtitle: "",
       authors: "",
-      description: "",
-      categories: "",
-      pageCount: "",
-      publishedDate: "",
       publisher: "",
-      bookImage: "",
-      isbn: "",
+      publishedDate: "",
+      description: "",
       isbnType: "",
+      isbn: "",
+      pageCount: "",
+      categories: "",
+      bookImage: "",
       readingProgress: "",
       rating: "",
       readingFormat: "",
@@ -57,53 +62,91 @@ export default function BookCreateForm({ setResults }: BookCreateFormProps) {
       if (userData) {
         const user = JSON.parse(userData);
 
+        // CREATE BOOK
         const book: Book = {
-          title: values.title
-            .split(" ")
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(" "),
-          subtitle: values.subtitle
-            .split(" ")
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(" "),
+          title: capitaliseSentence(values.title),
+          subtitle: capitaliseSentence(values.subtitle),
           authors: values.authors
-            .replace(/\b\w/g, (c) => c.toUpperCase())
-            .split(",")
-            .map((s) => s.trim()),
+            .split(", ")
+            .map((author) => capitaliseSentence(author)),
+          publisher: capitaliseSentence(values.publisher),
+          publishedDate: values.publishedDate,
           description: values.description,
+          industryIdentifiers: [
+            {
+              type: values.isbnType,
+              identifier: values.isbn,
+            },
+          ],
+          pageCount: Number(values.pageCount),
           categories: values.categories
-            .replace(/\b\w/g, (c) => c.toUpperCase())
-            .split(",")
-            .map((s) => s.trim()),
+            .split(", ")
+            .map((category) => capitaliseSentence(category)),
           imageLinks: {
             smallThumbnail: values.bookImage,
             thumbnail: values.bookImage,
           },
-          industryIdentifiers: [
-            { type: values.isbnType, identifier: values.isbn },
-          ],
-          pageCount: Number(values.pageCount),
-          publishedDate: values.publishedDate,
-          publisher: values.publisher,
+          userInfo: {
+            readingProgress: values.readingProgress,
+            readingFormat: values.readingFormat,
+            startDate: values.startDate,
+            endDate: values.endDate,
+            rating: values.rating,
+            comments: values.comments,
+            userEmail: user.email,
+            googleBook: false,
+          },
         };
 
-        const userInfo: UserInfo = {
-          readingProgress: values.readingProgress,
-          isbn: values.isbn,
-          rating: values.rating,
-          readingFormat: values.readingFormat,
-          startDate: values.startDate,
-          endDate: values.endDate,
-          user: user.email,
-          comments: values.comments,
-          bookImage: values.bookImage,
-          xata_id: "",
-          xata_createdat: "",
-          xata_updatedat: "",
-          xata_version: 0,
-        };
+        // SAVE BOOK TO DB
+        const response = await fetch("/pages/api/books/setBook", {
+          method: "POST",
+          headers: { "Content-type": "application/json" },
+          body: JSON.stringify({
+            book: book,
+            userInfo: {
+              readingProgress: values.readingProgress,
+              readingFormat: values.readingFormat,
+              startDate: values.startDate,
+              endDate: values.endDate,
+              rating: values.rating,
+              comments: values.comments,
+              userEmail: user.email,
+              googleBook: false,
+            },
+          }),
+        });
 
-        console.log("book", book, "userInfo", userInfo);
+        const data = await response.json();
+
+        if (
+          response.ok &&
+          data.message.messageType === "good" &&
+          book.userInfo
+        ) {
+          // UPDATE BOOK'S XATA INFORMATION
+          const xataData = JSON.parse(data.message.xataData);
+          book.userInfo.xata_createdat = xataData.xata_createdat;
+          book.userInfo.xata_id = xataData.xata_id;
+          book.userInfo.xata_updatedat = xataData.xata_updatedat;
+          book.userInfo.xata_version = xataData.xata_version;
+        }
+
+        await new Promise((res) => setTimeout(res, 200));
+
+        // ADD BOOK TO CACHE
+        modifyLibraryCache(
+          setCache,
+          "add",
+          book,
+          values.readingProgress as keyof LibraryList,
+          values.readingProgress as keyof LibraryList,
+        );
+
+        setAlert({
+          messageType: data.message.messageType,
+          message: data.message.clientMessage,
+        });
       }
     },
   });
@@ -158,6 +201,7 @@ export default function BookCreateForm({ setResults }: BookCreateFormProps) {
             name="description"
             id="description"
             placeholder="What was the book about?"
+            rows={30}
             onBlur={formik.handleBlur}
             onChange={formik.handleChange}
             value={formik.values.description}
@@ -194,8 +238,8 @@ export default function BookCreateForm({ setResults }: BookCreateFormProps) {
             <SelectValue placeholder="ISBN Type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ISBN_13">ISBN 13</SelectItem>
             <SelectItem value="ISBN_10">ISBN 10</SelectItem>
+            <SelectItem value="ISBN_13">ISBN 13</SelectItem>
           </SelectContent>
         </Select>
 
@@ -203,7 +247,7 @@ export default function BookCreateForm({ setResults }: BookCreateFormProps) {
           type="text"
           name="isbn"
           id="isbn"
-          placeholder="ISBN*"
+          placeholder="ISBN"
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           value={formik.values.isbn}
@@ -259,8 +303,8 @@ export default function BookCreateForm({ setResults }: BookCreateFormProps) {
             <SelectValue placeholder="Reading Progress *" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="reading">Reading</SelectItem>
             <SelectItem value="wishlist">Wish List</SelectItem>
+            <SelectItem value="reading">Reading</SelectItem>
             <SelectItem value="finished">Finished</SelectItem>
             <SelectItem value="dnf">DNF</SelectItem>
           </SelectContent>
@@ -343,6 +387,21 @@ export default function BookCreateForm({ setResults }: BookCreateFormProps) {
             value={formik.values.comments}
           />
         </div>
+
+        {alert &&
+          (alert.messageType == "bad" ? (
+            <Alert variant={"destructive"}>
+              <X />
+              <AlertDescription>{alert.message}</AlertDescription>
+            </Alert>
+          ) : (
+            <Alert variant={"default"}>
+              <Check />
+              <AlertDescription className="text-primary-black">
+                {alert.message}
+              </AlertDescription>
+            </Alert>
+          ))}
 
         <Button type="submit" className="pink cursor-pointer">
           Save Book

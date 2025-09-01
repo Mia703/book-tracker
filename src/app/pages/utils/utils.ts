@@ -1,4 +1,12 @@
-import { Book, GoogleBooksResponse, UserInfo } from "../../types/types";
+import { Book, LibraryList } from "@/app/types/types";
+import { Dispatch, SetStateAction } from "react";
+
+export function capitaliseSentence(string: string) {
+  return string
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
 
 /**
  * Formats a search input string by encoding punctuation, currency, and symbol characters
@@ -27,21 +35,8 @@ export function formatSearch(searchInput: string) {
   );
 }
 
-/**
- * Searches for books using the Google Books API and returns the top 5 results.
- *
- * @param searchInput - The search query string to look up books.
- * @returns A promise that resolves to an array of up to 5 `Book` objects matching the search input, or `null` if the request fails.
- *
- * @remarks
- * - Uses the Google Books API and requires a valid API key set in `NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY`.
- * - The search input is formatted using the `formatSearch` utility before being sent to the API.
- * - Only the first 5 results are returned.
- */
-export async function searchBooks_Top5(searchInput: string) {
-  let bookResults: Book[] | null = null;
-
-  const response = await fetch(
+export async function fetchGoogleBooks(limit: number, searchInput: string) {
+  const searchResponse = await fetch(
     `https://www.googleapis.com/books/v1/volumes?q=${formatSearch(searchInput)}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`,
     {
       method: "GET",
@@ -49,73 +44,141 @@ export async function searchBooks_Top5(searchInput: string) {
     },
   );
 
-  if (response.ok) {
-    const data = await response.json();
+  if (searchResponse.ok) {
+    const searchData = await searchResponse.json();
 
-    const booksList: Book[] = (data as GoogleBooksResponse).items
-      .slice(0, 5)
-      .map((item) => {
-        const bookInfo = item.volumeInfo;
-
+    const bookList: Book[] = searchData.items
+      .slice(0, limit)
+      //  eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((item: any) => {
         return {
-          title: bookInfo.title,
-          subtitle: bookInfo.subtitle,
-          authors: bookInfo.authors,
-          description: bookInfo.description,
-          categories: bookInfo.categories,
-          imageLinks: bookInfo.imageLinks,
-          industryIdentifiers: bookInfo.industryIdentifiers,
-          pageCount: bookInfo.pageCount,
-          publishedDate: bookInfo.publishedDate,
-          publisher: bookInfo.publisher,
+          googleBookId: item.id,
+          title: item.volumeInfo?.title,
+          subtitle: item.volumeInfo?.subtitle,
+          authors: item.volumeInfo?.authors,
+          publisher: item.volumeInfo?.publisher,
+          publishedDate: item.volumeInfo?.publishedDate,
+          description: item.volumeInfo?.description,
+          industryIdentifiers: item.volumeInfo?.industryIdentifiers,
+          pageCount: item.volumeInfo?.pageCount,
+          categories: item.volumeInfo?.categories,
+          imageLinks: item.volumeInfo?.imageLinks,
         };
       });
 
-    bookResults = booksList;
-  } else {
-    bookResults = null;
+    return bookList;
   }
-
-  return bookResults;
+  return null;
 }
 
-export async function searchBook_ISBN(searchInput: string) {
-  let bookResults: Book[] | null = null;
-
-  const response = await fetch(
-    `https://www.googleapis.com/books/v1/volumes?q=${formatSearch(`isbn:${searchInput}`)}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`,
+export async function fetchGoogleBooks__ByID(googleBookId: string, book: Book) {
+  const searchResponse = await fetch(
+    `https://www.googleapis.com/books/v1/volumes/${googleBookId}?key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`,
     {
       method: "GET",
       headers: { "Content-type": "application/json" },
     },
   );
 
+  if (searchResponse.ok) {
+    const searchData = await searchResponse.json();
+
+    // update the book's data
+    book.title = searchData.volumeInfo?.title;
+    book.subtitle = searchData.volumeInfo?.subtitle;
+    book.authors = searchData.volumeInfo?.authors;
+    book.publisher = searchData.volumeInfo?.publisher;
+    book.publishedDate = searchData.volumeInfo?.publishedDate;
+    book.description = searchData.volumeInfo?.description;
+    book.industryIdentifiers = searchData.volumeInfo?.industryIdentifiers;
+    book.pageCount = searchData.volumeInfo?.pageCount;
+    book.categories = searchData.volumeInfo?.categories;
+    book.imageLinks = searchData.volumeInfo?.imageLinks;
+  }
+  return book;
+}
+
+export async function fetchGoogleBooks__ByReadingProgress(
+  readingProgress: string,
+  userEmail: string,
+  batchSize: number,
+) {
+  const response = await fetch("/pages/api/books/getAllBooks", {
+    method: "POST",
+    headers: { "Content-type": "application/json" },
+    body: JSON.stringify({ readingProgress, userEmail }),
+  });
+
+  const data = await response.json();
+
   if (response.ok) {
-    const data = await response.json();
+    const booksList: Book[] = JSON.parse(data.message.getAllBooks);
 
-    const booksList: Book[] = (data as GoogleBooksResponse).items
-      .slice(0)
-      .map((item) => {
-        const bookInfo = item.volumeInfo;
+    for (let i = 0; i < booksList.length; i += batchSize) {
+      // slice a batch
+      const batch = booksList.slice(i, i + batchSize);
 
-        return {
-          title: bookInfo.title,
-          subtitle: bookInfo.subtitle,
-          authors: bookInfo.authors,
-          description: bookInfo.description,
-          categories: bookInfo.categories,
-          imageLinks: bookInfo.imageLinks,
-          industryIdentifiers: bookInfo.industryIdentifiers,
-          pageCount: bookInfo.pageCount,
-          publishedDate: bookInfo.publishedDate,
-          publisher: bookInfo.publisher,
-        };
-      });
+      // run them in parallel for this batch
+      await Promise.all(
+        batch.map(async (book) => {
+          await new Promise((res) => setTimeout(res, 200)); // wait 2 seconds
 
-    bookResults = booksList;
+          if (book.googleBookId && book.userInfo?.googleBook) {
+            await fetchGoogleBooks__ByID(book.googleBookId, book);
+          }
+        }),
+      );
+    }
+
+    return booksList;
   } else {
-    bookResults = null;
+    return [];
+  }
+}
+
+export function modifyLibraryCache(
+  setCache: Dispatch<SetStateAction<LibraryList>>,
+  action: "add" | "update" | "delete",
+  book: Book,
+  currentList: keyof LibraryList | undefined,
+  newList: keyof LibraryList,
+) {
+  console.log(`${action} book from ${currentList} to ${newList}`);
+
+  // remove from current list
+  if (currentList) {
+    console.log("modifyCache: remove book from list");
+    setCache((prev) => ({
+      ...prev,
+      [currentList]: [
+        ...prev[currentList].filter(
+          (item: Book) => item.userInfo?.xata_id !== book.userInfo?.xata_id,
+        ),
+      ],
+    }));
   }
 
-  return bookResults;
+  if (action === "add" || action === "update") {
+    console.log("modifyCache: add or update book to library cache");
+    // ADD BOOK TO LIST
+    setCache((prev) => ({
+      ...prev,
+      [newList]: [...prev[newList], book],
+    }));
+
+    // SORT LIST BY CREATEDATE, IF MISSING LEAVE ORDER UNCHANGED
+    setCache((prev) => ({
+      ...prev,
+      [newList]: [
+        ...prev[newList].sort((a, b) =>
+          a.userInfo?.xata_createdat && b.userInfo?.xata_createdat
+            ? new Date(b.userInfo?.xata_createdat).getTime() -
+              new Date(a.userInfo?.xata_createdat).getTime()
+            : 0,
+        ),
+      ],
+    }));
+  }
+
+  // IF DELETE DO NOTHING, SINCE IT'S ALREADY REMOVED
 }
