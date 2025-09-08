@@ -115,10 +115,10 @@ export async function fetchGoogleBooks__ByReadingProgress(
     const booksList: Book[] = JSON.parse(data.message.getAllBooks);
 
     for (let i = 0; i < booksList.length; i += batchSize) {
-      // slice a batch
+      // SLICE BOOK LIST BASED ON BATCH SIZE
       const batch = booksList.slice(i, i + batchSize);
 
-      // run them in parallel for this batch
+      // RUN THE BACH AT THE SAME TIME
       await Promise.all(
         batch.map(async (book) => {
           await new Promise((res) => setTimeout(res, 200)); // wait 2 seconds
@@ -143,11 +143,9 @@ export function modifyLibraryCache(
   currentList: keyof LibraryList | undefined,
   newList: keyof LibraryList,
 ) {
-  console.log(`${action} book from ${currentList} to ${newList}`);
 
-  // remove from current list
+  // REMOVE BOOK FROM CURRENT READING LIST
   if (currentList) {
-    console.log("modifyCache: remove book from list");
     setCache((prev) => ({
       ...prev,
       [currentList]: [
@@ -159,21 +157,20 @@ export function modifyLibraryCache(
   }
 
   if (action === "add" || action === "update") {
-    console.log("modifyCache: add or update book to library cache");
-    // ADD BOOK TO LIST
+    // ADD BOOK TO NEW READING LIST
     setCache((prev) => ({
       ...prev,
       [newList]: [...prev[newList], book],
     }));
 
-    // SORT LIST BY CREATEDATE, IF MISSING LEAVE ORDER UNCHANGED
+    // SORT LIST BY UPDATEDAT, IF MISSING LEAVE ORDER UNCHANGED
     setCache((prev) => ({
       ...prev,
       [newList]: [
         ...prev[newList].sort((a, b) =>
-          a.userInfo?.xata_createdat && b.userInfo?.xata_createdat
-            ? new Date(b.userInfo?.xata_createdat).getTime() -
-              new Date(a.userInfo?.xata_createdat).getTime()
+          a.userInfo?.xata_updatedat && b.userInfo?.xata_updatedat
+            ? new Date(b.userInfo?.xata_updatedat).getTime() -
+              new Date(a.userInfo?.xata_updatedat).getTime()
             : 0,
         ),
       ],

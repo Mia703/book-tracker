@@ -107,6 +107,7 @@ export default function SearchBar({ setCache }: SearchBarProps) {
           <Sheet>
             <SheetTrigger asChild>
               <Button className="pink cursor-pointer">
+                Add Book
                 <Plus />
               </Button>
             </SheetTrigger>

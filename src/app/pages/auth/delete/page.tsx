@@ -25,6 +25,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircleIcon, Check } from "lucide-react";
 import Link from "next/link";
 import MainGrid from "@/app/components/MainGrid";
+import { Label } from "@radix-ui/react-label";
 
 export default function DeleteAccount() {
   const [alert, setAlert] = useState<{
@@ -72,6 +73,10 @@ export default function DeleteAccount() {
           </CardHeader>
           <CardContent>
             <form action="" method="post" onSubmit={formik.handleSubmit}>
+              <Label htmlFor="email" className="mb-2">
+                Email
+                <span className="text-red-500">*</span>
+              </Label>
               <Input
                 type="email"
                 name="email"

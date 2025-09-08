@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircleIcon } from "lucide-react";
 import MainGrid from "./components/MainGrid";
 import Link from "next/link";
+import { Label } from "@/components/ui/label";
 
 export default function Home() {
   const [alert, setAlert] = useState<string>("");
@@ -71,6 +72,9 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <form action="" method="post" onSubmit={formik.handleSubmit}>
+              <Label htmlFor="email" className="mb-2">
+                Email<span className="text-red-500">*</span>
+              </Label>
               <Input
                 type="email"
                 name="email"

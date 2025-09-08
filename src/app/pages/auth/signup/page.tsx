@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import MainGrid from "@/app/components/MainGrid";
 import Link from "next/link";
+import { Label } from "@/components/ui/label";
 
 export default function Signup() {
   const [alert, setAlert] = useState("");
@@ -76,34 +77,51 @@ export default function Signup() {
           <CardContent>
             <form action="" method="post" onSubmit={formik.handleSubmit}>
               <div className="input-wrapper flex flex-row gap-4 pb-4">
+                <div className="input-wrapper flex flex-col">
+                  <Label htmlFor="firstName" className="mb-2">
+                    First Name<span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    type="text"
+                    name="firstName"
+                    id="firstName"
+                    placeholder="First Name*"
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    value={formik.values.firstName}
+                  />
+                </div>
+
+                <div className="input-wrapper flex flex-col">
+                  <Label htmlFor="lastName" className="mb-2">
+                    Last Name<span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    type="text"
+                    name="lastName"
+                    id="lastName"
+                    placeholder="Last Name*"
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    value={formik.values.lastName}
+                  />
+                </div>
+              </div>
+
+              <div className="input-wrapper flex flex-col">
+                <Label htmlFor="email" className="mb-2">
+                  Email<span className="text-red-500">*</span>
+                </Label>
                 <Input
-                  type="text"
-                  name="firstName"
-                  id="firstName"
-                  placeholder="First Name*"
+                  type="email"
+                  name="email"
+                  id="email"
+                  placeholder="Email*"
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  value={formik.values.firstName}
-                />
-                <Input
-                  type="text"
-                  name="lastName"
-                  id="lastName"
-                  placeholder="Last Name*"
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  value={formik.values.lastName}
+                  value={formik.values.email}
                 />
               </div>
-              <Input
-                type="email"
-                name="email"
-                id="email"
-                placeholder="Email*"
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                value={formik.values.email}
-              />
               <Button
                 type="submit"
                 className="pink my-4 w-full hover:cursor-pointer"

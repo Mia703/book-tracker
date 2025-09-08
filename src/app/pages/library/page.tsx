@@ -14,6 +14,7 @@ import { fetchGoogleBooks__ByReadingProgress } from "../utils/utils";
 
 export default function Library() {
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const [cache, setCache] = useState<LibraryList>({
     wishlist: [],
@@ -24,6 +25,20 @@ export default function Library() {
 
   const router = useRouter();
 
+  const placeholder = [];
+  for (let i = 0; i < 15; i++) {
+    placeholder.push(
+      <div
+        className="loading-book flex w-fit flex-col items-center justify-center"
+        key={i}
+      >
+        <div className="blank-book h-45 w-32 bg-gray-400"></div>
+        <hr className="my-2 w-25 border-2 border-gray-600" />
+        <hr className="w-20 border-2 border-gray-600" />
+      </div>,
+    );
+  }
+
   useEffect(() => {
     const userData = window.sessionStorage.getItem("user");
 
@@ -32,7 +47,6 @@ export default function Library() {
       setLoggedIn(true);
 
       async function getAllBooks(userEmail: string, batchSize: number) {
-        // Option 1
         const wishList = await fetchGoogleBooks__ByReadingProgress(
           "wishlist",
           userEmail,
@@ -54,26 +68,7 @@ export default function Library() {
           batchSize,
         );
 
-        // Option 2
-        // const [wishList, readingList, finishedList, dnfList] =
-        //   await Promise.all([
-        //     fetchGoogleBooks__ByReadingProgress(
-        //       "wishlist",
-        //       userEmail,
-        //       batchSize,
-        //     ),
-        //     fetchGoogleBooks__ByReadingProgress(
-        //       "reading",
-        //       userEmail,
-        //       batchSize,
-        //     ),
-        //     fetchGoogleBooks__ByReadingProgress(
-        //       "finished",
-        //       userEmail,
-        //       batchSize,
-        //     ),
-        //     fetchGoogleBooks__ByReadingProgress("dnf", userEmail, batchSize),
-        //   ]);
+        setIsLoading(false);
 
         setCache({
           wishlist: wishList,
@@ -82,6 +77,7 @@ export default function Library() {
           dnf: dnfList,
         });
       }
+      
       getAllBooks(user.email, 10);
     } else {
       setLoggedIn(false);
@@ -104,7 +100,14 @@ export default function Library() {
               defaultValue="accordion-item-1"
             >
               <Dropdown name="Wish List" index={0}>
-                {cache && cache["wishlist"].length != 0 ? (
+                {isLoading ? (
+                  <div
+                    className="loading-wrapper horizontal-media-scroller"
+                    style={{ overflow: "hidden" }}
+                  >
+                    {placeholder}
+                  </div>
+                ) : cache && cache["wishlist"].length != 0 ? (
                   <div className="books-wrapper horizontal-media-scroller">
                     {cache["wishlist"].map((data: BookType, index: number) => (
                       <BookScreen
@@ -117,13 +120,20 @@ export default function Library() {
                   </div>
                 ) : (
                   <p className="text-center">
-                    You don&apos;t have any books in your wish list!
+                    You&apos;re not reading any books yet!
                   </p>
                 )}
               </Dropdown>
 
               <Dropdown name="Reading" index={1}>
-                {cache && cache["reading"].length != 0 ? (
+                {isLoading ? (
+                  <div
+                    className="loading-wrapper horizontal-media-scroller"
+                    style={{ overflow: "hidden" }}
+                  >
+                    {placeholder}
+                  </div>
+                ) : cache && cache["reading"].length != 0 ? (
                   <div className="books-wrapper horizontal-media-scroller">
                     {cache["reading"].map((data: BookType, index: number) => (
                       <BookScreen
@@ -142,7 +152,14 @@ export default function Library() {
               </Dropdown>
 
               <Dropdown name="Finished" index={2}>
-                {cache && cache["finished"].length != 0 ? (
+                {isLoading ? (
+                  <div
+                    className="loading-wrapper horizontal-media-scroller"
+                    style={{ overflow: "hidden" }}
+                  >
+                    {placeholder}
+                  </div>
+                ) : cache && cache["finished"].length != 0 ? (
                   <div className="books-wrapper horizontal-media-scroller">
                     {cache["finished"].map((data: BookType, index: number) => (
                       <BookScreen
@@ -161,7 +178,14 @@ export default function Library() {
               </Dropdown>
 
               <Dropdown name="DNF" index={3}>
-                {cache && cache["dnf"].length != 0 ? (
+                {isLoading ? (
+                  <div
+                    className="loading-wrapper horizontal-media-scroller"
+                    style={{ overflow: "hidden" }}
+                  >
+                    {placeholder}
+                  </div>
+                ) : cache && cache["dnf"].length != 0 ? (
                   <div className="books-wrapper horizontal-media-scroller">
                     {cache["dnf"].map((data: BookType, index: number) => (
                       <BookScreen

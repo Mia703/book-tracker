@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     const getAllBooks = await xata.db.Books.filter({
       user: userEmail,
       readingProgress: readingProgress,
-    }).sort("xata_createdat", "desc").getAll();
+    }).sort("xata_updatedat", "desc").getAll();
 
     if (!getAllBooks) {
       return NextResponse.json(
