@@ -26,7 +26,7 @@ export default function Library() {
     dnf: true,
   });
 
-  const [cache, setCache] = useState<LibraryList>({
+  const [libraryList, setLibraryList] = useState<LibraryList>({
     wishlist: [],
     reading: [],
     finished: [],
@@ -35,6 +35,7 @@ export default function Library() {
 
   const router = useRouter();
 
+  // CREATES A BLANK BOOK PLACEHOLDER TILL DATA LOADS
   const placeholder = [];
   for (let i = 0; i < 15; i++) {
     placeholder.push(
@@ -71,7 +72,7 @@ export default function Library() {
         );
         const dnfList = await fetchBooksByReadingProgress("dnf", userEmail);
 
-        setCache({
+        setLibraryList({
           wishlist: wishList,
           reading: readingList,
           finished: finishedList,
@@ -94,7 +95,7 @@ export default function Library() {
 
   return (
     <MainGrid>
-      <SearchBar setCache={setCache} />
+      <SearchBar setCache={setLibraryList} />
 
       {loggedIn ? (
         <section
@@ -115,14 +116,14 @@ export default function Library() {
                   >
                     {placeholder}
                   </div>
-                ) : cache && cache["wishlist"].length != 0 ? (
+                ) : libraryList && libraryList["wishlist"].length != 0 ? (
                   <div className="books-wrapper horizontal-media-scroller">
-                    {cache["wishlist"].map((data: BookType, index: number) => (
+                    {libraryList["wishlist"].map((data: BookType, index: number) => (
                       <BookScreen
                         key={index}
                         screenTrigger={<Book key={index} book={data} />}
                       >
-                        <BookInfo book={data} setCache={setCache} />
+                        <BookInfo book={data} setCache={setLibraryList} />
                       </BookScreen>
                     ))}
                   </div>
@@ -141,14 +142,14 @@ export default function Library() {
                   >
                     {placeholder}
                   </div>
-                ) : cache && cache["reading"].length != 0 ? (
+                ) : libraryList && libraryList["reading"].length != 0 ? (
                   <div className="books-wrapper horizontal-media-scroller">
-                    {cache["reading"].map((data: BookType, index: number) => (
+                    {libraryList["reading"].map((data: BookType, index: number) => (
                       <BookScreen
                         key={index}
                         screenTrigger={<Book key={index} book={data} />}
                       >
-                        <BookInfo book={data} setCache={setCache} />
+                        <BookInfo book={data} setCache={setLibraryList} />
                       </BookScreen>
                     ))}
                   </div>
@@ -167,14 +168,14 @@ export default function Library() {
                   >
                     {placeholder}
                   </div>
-                ) : cache && cache["finished"].length != 0 ? (
+                ) : libraryList && libraryList["finished"].length != 0 ? (
                   <div className="books-wrapper horizontal-media-scroller">
-                    {cache["finished"].map((data: BookType, index: number) => (
+                    {libraryList["finished"].map((data: BookType, index: number) => (
                       <BookScreen
                         key={index}
                         screenTrigger={<Book key={index} book={data} />}
                       >
-                        <BookInfo book={data} setCache={setCache} />
+                        <BookInfo book={data} setCache={setLibraryList} />
                       </BookScreen>
                     ))}
                   </div>
@@ -193,14 +194,14 @@ export default function Library() {
                   >
                     {placeholder}
                   </div>
-                ) : cache && cache["dnf"].length != 0 ? (
+                ) : libraryList && libraryList["dnf"].length != 0 ? (
                   <div className="books-wrapper horizontal-media-scroller">
-                    {cache["dnf"].map((data: BookType, index: number) => (
+                    {libraryList["dnf"].map((data: BookType, index: number) => (
                       <BookScreen
                         key={index}
                         screenTrigger={<Book key={index} book={data} />}
                       >
-                        <BookInfo book={data} setCache={setCache} />
+                        <BookInfo book={data} setCache={setLibraryList} />
                       </BookScreen>
                     ))}
                   </div>
