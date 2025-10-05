@@ -98,10 +98,12 @@ export async function fetchGoogleBooks__ByID(googleBookId: string, book: Book) {
   return book;
 }
 
-export async function fetchGoogleBooks__ByReadingProgress(
+// determines the # of book data searched by google books api
+const batchSize = 10;
+
+export async function fetchBooksByReadingProgress(
   readingProgress: string,
   userEmail: string,
-  batchSize: number,
 ) {
   const response = await fetch("/pages/api/books/getAllBooks", {
     method: "POST",

@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Accordion } from "@radix-ui/react-accordion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { fetchGoogleBooks__ByReadingProgress } from "../utils/utils";
+import { fetchBooksByReadingProgress } from "../utils/utils";
 
 export default function Library() {
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
@@ -46,29 +46,23 @@ export default function Library() {
       const user = JSON.parse(userData);
       setLoggedIn(true);
 
-      async function getAllBooks(userEmail: string, batchSize: number) {
-        const wishList = await fetchGoogleBooks__ByReadingProgress(
+      async function getAllBooks(userEmail: string) {
+        const wishList = await fetchBooksByReadingProgress(
           "wishlist",
           userEmail,
-          batchSize,
         );
-        const readingList = await fetchGoogleBooks__ByReadingProgress(
+        const readingList = await fetchBooksByReadingProgress(
           "reading",
           userEmail,
-          batchSize,
         );
-        const finishedList = await fetchGoogleBooks__ByReadingProgress(
+        const finishedList = await fetchBooksByReadingProgress(
           "finished",
           userEmail,
-          batchSize,
         );
-        const dnfList = await fetchGoogleBooks__ByReadingProgress(
+        const dnfList = await fetchBooksByReadingProgress(
           "dnf",
           userEmail,
-          batchSize,
         );
-
-        setIsLoading(false);
 
         setCache({
           wishlist: wishList,
@@ -76,9 +70,11 @@ export default function Library() {
           finished: finishedList,
           dnf: dnfList,
         });
+
+        setIsLoading(false);
       }
       
-      getAllBooks(user.email, 10);
+      getAllBooks(user.email);
     } else {
       setLoggedIn(false);
     }

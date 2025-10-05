@@ -37,8 +37,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // TURN THE BOOKS FORM XATA INTO A BOOK TYPE
-    const list: Book[] = getAllBooks.map((item) => {
+    // TURN THE BOOKS FROM XATA INTO A BOOK TYPE
+    const booksList: Book[] = getAllBooks.map((item) => {
       return {
         googleBookId:
           item.googleBookId != undefined ? item.googleBookId : undefined,
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
         message: {
           developerMessage: "getAllBooks: Success",
           clientMessage: "Success!",
-          getAllBooks: JSON.stringify(list),
+          getAllBooks: JSON.stringify(booksList),
         },
       },
       { status: 200 },
