@@ -14,7 +14,17 @@ import { fetchBooksByReadingProgress } from "../utils/utils";
 
 export default function Library() {
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<{
+    wishlist: boolean;
+    reading: boolean;
+    finished: boolean;
+    dnf: boolean;
+  }>({
+    wishlist: true,
+    reading: true,
+    finished: true,
+    dnf: true,
+  });
 
   const [cache, setCache] = useState<LibraryList>({
     wishlist: [],
@@ -59,10 +69,7 @@ export default function Library() {
           "finished",
           userEmail,
         );
-        const dnfList = await fetchBooksByReadingProgress(
-          "dnf",
-          userEmail,
-        );
+        const dnfList = await fetchBooksByReadingProgress("dnf", userEmail);
 
         setCache({
           wishlist: wishList,
@@ -71,9 +78,14 @@ export default function Library() {
           dnf: dnfList,
         });
 
-        setIsLoading(false);
+        setIsLoading({
+          wishlist: false,
+          reading: false,
+          finished: false,
+          dnf: false,
+        });
       }
-      
+
       getAllBooks(user.email);
     } else {
       setLoggedIn(false);
@@ -96,7 +108,7 @@ export default function Library() {
               defaultValue="accordion-item-1"
             >
               <Dropdown name="Wish List" index={0}>
-                {isLoading ? (
+                {isLoading["wishlist"] ? (
                   <div
                     className="loading-wrapper horizontal-media-scroller"
                     style={{ overflow: "hidden" }}
@@ -122,7 +134,7 @@ export default function Library() {
               </Dropdown>
 
               <Dropdown name="Reading" index={1}>
-                {isLoading ? (
+                {isLoading["reading"] ? (
                   <div
                     className="loading-wrapper horizontal-media-scroller"
                     style={{ overflow: "hidden" }}
@@ -148,7 +160,7 @@ export default function Library() {
               </Dropdown>
 
               <Dropdown name="Finished" index={2}>
-                {isLoading ? (
+                {isLoading["finished"] ? (
                   <div
                     className="loading-wrapper horizontal-media-scroller"
                     style={{ overflow: "hidden" }}
@@ -174,7 +186,7 @@ export default function Library() {
               </Dropdown>
 
               <Dropdown name="DNF" index={3}>
-                {isLoading ? (
+                {isLoading["dnf"] ? (
                   <div
                     className="loading-wrapper horizontal-media-scroller"
                     style={{ overflow: "hidden" }}
