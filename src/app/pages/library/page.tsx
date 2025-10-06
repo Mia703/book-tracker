@@ -10,21 +10,30 @@ import { Button } from "@/components/ui/button";
 import { Accordion } from "@radix-ui/react-accordion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { fetchGoogleBooks__ByReadingProgress } from "../utils/utils";
+import { fetchBooksByReadingProgress } from "../utils/utils";
 
 export default function Library() {
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<{
+    wishlist: boolean;
+    reading: boolean;
+    finished: boolean;
+    dnf: boolean;
+  }>({
+    wishlist: true,
+    reading: true,
+    finished: true,
+    dnf: true,
+  });
 
-  const [cache, setCache] = useState<LibraryList>({
+  const [libraryList, setLibraryList] = useState<LibraryList>({
     wishlist: [],
     reading: [],
     finished: [],
     dnf: [],
   });
 
-  const router = useRouter();
-
+  // CREATES A BLANK BOOK PLACEHOLDER TILL DATA LOADS
   const placeholder = [];
   for (let i = 0; i < 15; i++) {
     placeholder.push(
@@ -39,6 +48,9 @@ export default function Library() {
     );
   }
 
+  const router = useRouter();
+  
+
   useEffect(() => {
     const userData = window.sessionStorage.getItem("user");
 
@@ -46,39 +58,87 @@ export default function Library() {
       const user = JSON.parse(userData);
       setLoggedIn(true);
 
-      async function getAllBooks(userEmail: string, batchSize: number) {
-        const wishList = await fetchGoogleBooks__ByReadingProgress(
+      async function getAllBooks(userEmail: string) {
+        const wishList = await fetchBooksByReadingProgress(
           "wishlist",
           userEmail,
-          batchSize,
         );
-        const readingList = await fetchGoogleBooks__ByReadingProgress(
+
+        await new Promise((res) => setTimeout(res, 200)); // wait 0.2 seconds
+
+        setLibraryList({
+          wishlist: wishList,
+          reading: [],
+          finished: [],
+          dnf: [],
+        });
+
+        setIsLoading({
+          wishlist: false,
+          reading: true,
+          finished: true,
+          dnf: true,
+        });
+
+        const readingList = await fetchBooksByReadingProgress(
           "reading",
           userEmail,
-          batchSize,
         );
-        const finishedList = await fetchGoogleBooks__ByReadingProgress(
+
+        await new Promise((res) => setTimeout(res, 200)); // wait 0.2 seconds
+        setLibraryList({
+          wishlist: wishList,
+          reading: readingList,
+          finished: [],
+          dnf: [],
+        });
+
+        setIsLoading({
+          wishlist: false,
+          reading: false,
+          finished: true,
+          dnf: true,
+        });
+
+        const finishedList = await fetchBooksByReadingProgress(
           "finished",
           userEmail,
-          batchSize,
-        );
-        const dnfList = await fetchGoogleBooks__ByReadingProgress(
-          "dnf",
-          userEmail,
-          batchSize,
         );
 
-        setIsLoading(false);
+        await new Promise((res) => setTimeout(res, 200)); // wait 0.2 seconds
 
-        setCache({
+        setLibraryList({
+          wishlist: [],
+          reading: [],
+          finished: finishedList,
+          dnf: [],
+        });
+
+        setIsLoading({
+          wishlist: false,
+          reading: false,
+          finished: false,
+          dnf: true,
+        });
+
+        const dnfList = await fetchBooksByReadingProgress("dnf", userEmail);
+
+        setLibraryList({
           wishlist: wishList,
           reading: readingList,
           finished: finishedList,
           dnf: dnfList,
         });
+
+        setIsLoading({
+          wishlist: false,
+          reading: false,
+          finished: false,
+          dnf: false,
+        });
       }
-      
-      getAllBooks(user.email, 10);
+
+      getAllBooks(user.email);
     } else {
       setLoggedIn(false);
     }
@@ -86,7 +146,7 @@ export default function Library() {
 
   return (
     <MainGrid>
-      <SearchBar setCache={setCache} />
+      <SearchBar setCache={setLibraryList} />
 
       {loggedIn ? (
         <section
@@ -100,23 +160,25 @@ export default function Library() {
               defaultValue="accordion-item-1"
             >
               <Dropdown name="Wish List" index={0}>
-                {isLoading ? (
+                {isLoading["wishlist"] ? (
                   <div
                     className="loading-wrapper horizontal-media-scroller"
                     style={{ overflow: "hidden" }}
                   >
                     {placeholder}
                   </div>
-                ) : cache && cache["wishlist"].length != 0 ? (
+                ) : libraryList && libraryList["wishlist"].length != 0 ? (
                   <div className="books-wrapper horizontal-media-scroller">
-                    {cache["wishlist"].map((data: BookType, index: number) => (
-                      <BookScreen
-                        key={index}
-                        screenTrigger={<Book key={index} book={data} />}
-                      >
-                        <BookInfo book={data} setCache={setCache} />
-                      </BookScreen>
-                    ))}
+                    {libraryList["wishlist"].map(
+                      (data: BookType, index: number) => (
+                        <BookScreen
+                          key={index}
+                          screenTrigger={<Book key={index} book={data} />}
+                        >
+                          <BookInfo book={data} setCache={setLibraryList} />
+                        </BookScreen>
+                      ),
+                    )}
                   </div>
                 ) : (
                   <p className="text-center">
@@ -126,23 +188,25 @@ export default function Library() {
               </Dropdown>
 
               <Dropdown name="Reading" index={1}>
-                {isLoading ? (
+                {isLoading["reading"] ? (
                   <div
                     className="loading-wrapper horizontal-media-scroller"
                     style={{ overflow: "hidden" }}
                   >
                     {placeholder}
                   </div>
-                ) : cache && cache["reading"].length != 0 ? (
+                ) : libraryList && libraryList["reading"].length != 0 ? (
                   <div className="books-wrapper horizontal-media-scroller">
-                    {cache["reading"].map((data: BookType, index: number) => (
-                      <BookScreen
-                        key={index}
-                        screenTrigger={<Book key={index} book={data} />}
-                      >
-                        <BookInfo book={data} setCache={setCache} />
-                      </BookScreen>
-                    ))}
+                    {libraryList["reading"].map(
+                      (data: BookType, index: number) => (
+                        <BookScreen
+                          key={index}
+                          screenTrigger={<Book key={index} book={data} />}
+                        >
+                          <BookInfo book={data} setCache={setLibraryList} />
+                        </BookScreen>
+                      ),
+                    )}
                   </div>
                 ) : (
                   <p className="text-center">
@@ -152,23 +216,25 @@ export default function Library() {
               </Dropdown>
 
               <Dropdown name="Finished" index={2}>
-                {isLoading ? (
+                {isLoading["finished"] ? (
                   <div
                     className="loading-wrapper horizontal-media-scroller"
                     style={{ overflow: "hidden" }}
                   >
                     {placeholder}
                   </div>
-                ) : cache && cache["finished"].length != 0 ? (
+                ) : libraryList && libraryList["finished"].length != 0 ? (
                   <div className="books-wrapper horizontal-media-scroller">
-                    {cache["finished"].map((data: BookType, index: number) => (
-                      <BookScreen
-                        key={index}
-                        screenTrigger={<Book key={index} book={data} />}
-                      >
-                        <BookInfo book={data} setCache={setCache} />
-                      </BookScreen>
-                    ))}
+                    {libraryList["finished"].map(
+                      (data: BookType, index: number) => (
+                        <BookScreen
+                          key={index}
+                          screenTrigger={<Book key={index} book={data} />}
+                        >
+                          <BookInfo book={data} setCache={setLibraryList} />
+                        </BookScreen>
+                      ),
+                    )}
                   </div>
                 ) : (
                   <p className="text-center">
@@ -178,21 +244,21 @@ export default function Library() {
               </Dropdown>
 
               <Dropdown name="DNF" index={3}>
-                {isLoading ? (
+                {isLoading["dnf"] ? (
                   <div
                     className="loading-wrapper horizontal-media-scroller"
                     style={{ overflow: "hidden" }}
                   >
                     {placeholder}
                   </div>
-                ) : cache && cache["dnf"].length != 0 ? (
+                ) : libraryList && libraryList["dnf"].length != 0 ? (
                   <div className="books-wrapper horizontal-media-scroller">
-                    {cache["dnf"].map((data: BookType, index: number) => (
+                    {libraryList["dnf"].map((data: BookType, index: number) => (
                       <BookScreen
                         key={index}
                         screenTrigger={<Book key={index} book={data} />}
                       >
-                        <BookInfo book={data} setCache={setCache} />
+                        <BookInfo book={data} setCache={setLibraryList} />
                       </BookScreen>
                     ))}
                   </div>

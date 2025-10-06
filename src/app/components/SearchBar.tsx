@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useState } from "react";
 import SearchResults from "./SearchResults";
 import BookCreateForm from "./BookCreateForm";
-import { fetchGoogleBooks } from "../pages/utils/utils";
+import { googleBooks__fetchBook } from "../pages/utils/utils";
 
 type SearchBarProps = {
   setCache: Dispatch<SetStateAction<LibraryList>>;
@@ -36,7 +36,7 @@ export default function SearchBar({ setCache }: SearchBarProps) {
     },
     onSubmit: async (values) => {
       if (values.search !== "") {
-        const searchResults = await fetchGoogleBooks(5, values.search);
+        const searchResults = await googleBooks__fetchBook(5, values.search);
 
         if (searchResults) {
           setSearchResults(searchResults);

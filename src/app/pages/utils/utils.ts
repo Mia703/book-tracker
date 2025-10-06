@@ -21,7 +21,7 @@ export function capitaliseSentence(string: string) {
  * @param searchInput - The input string to format for search.
  * @returns The formatted search string.
  */
-export function formatSearch(searchInput: string) {
+export function googleBooks__formatSearch(searchInput: string) {
   return (
     searchInput
       // replace punctuation/currency/symbols with %XX
@@ -35,9 +35,12 @@ export function formatSearch(searchInput: string) {
   );
 }
 
-export async function fetchGoogleBooks(limit: number, searchInput: string) {
+// TODO: use partial request to get only the information I need
+// https://developers.google.com/books/docs/v1/performance
+
+export async function googleBooks__fetchBook(limit: number, searchInput: string) {
   const searchResponse = await fetch(
-    `https://www.googleapis.com/books/v1/volumes?q=${formatSearch(searchInput)}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`,
+    `https://www.googleapis.com/books/v1/volumes?q=${googleBooks__formatSearch(searchInput)}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`,
     {
       method: "GET",
       headers: { "Content-type": "application/json" },
@@ -71,7 +74,7 @@ export async function fetchGoogleBooks(limit: number, searchInput: string) {
   return null;
 }
 
-export async function fetchGoogleBooks__ByID(googleBookId: string, book: Book) {
+export async function googleBooks__fetchBooksById(googleBookId: string, book: Book) {
   const searchResponse = await fetch(
     `https://www.googleapis.com/books/v1/volumes/${googleBookId}?key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`,
     {
@@ -98,37 +101,24 @@ export async function fetchGoogleBooks__ByID(googleBookId: string, book: Book) {
   return book;
 }
 
-export async function fetchGoogleBooks__ByReadingProgress(
+// determines the # of book data searched by google books api
+
+export async function fetchBooksByReadingProgress(
   readingProgress: string,
   userEmail: string,
-  batchSize: number,
 ) {
+  const batchSize = 3;
+
   const response = await fetch("/pages/api/books/getAllBooks", {
     method: "POST",
     headers: { "Content-type": "application/json" },
-    body: JSON.stringify({ readingProgress, userEmail }),
+    body: JSON.stringify({ readingProgress, userEmail, batchSize }),
   });
 
   const data = await response.json();
 
   if (response.ok) {
     const booksList: Book[] = JSON.parse(data.message.getAllBooks);
-
-    for (let i = 0; i < booksList.length; i += batchSize) {
-      // SLICE BOOK LIST BASED ON BATCH SIZE
-      const batch = booksList.slice(i, i + batchSize);
-
-      // RUN THE BACH AT THE SAME TIME
-      await Promise.all(
-        batch.map(async (book) => {
-          await new Promise((res) => setTimeout(res, 200)); // wait 2 seconds
-
-          if (book.googleBookId && book.userInfo?.googleBook) {
-            await fetchGoogleBooks__ByID(book.googleBookId, book);
-          }
-        }),
-      );
-    }
 
     return booksList;
   } else {

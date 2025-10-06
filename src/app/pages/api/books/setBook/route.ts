@@ -43,62 +43,45 @@ export async function POST(request: Request) {
       ],
     }).getFirst();
 
-    let setBook;
+    // THE BOOK IS NOT A GOOGLE BOOK -- UPDATE EVERYTHING
+    const setBook = await xata.db.Books.createOrReplace(getBook?.xata_id, {
+      googleBookId: book.googleBookId,
+      title: book.title,
+      subtitle: book.subtitle,
+      description: book.description,
+      isbnType:
+        book.industryIdentifiers.find(
+          (item: { type: string }) => item.type === "ISBN_13",
+        )?.type ??
+        book.industryIdentifiers.find(
+          (item: { type: string }) => item.type === "ISBN_10",
+        )?.type ??
+        "",
+      isbn:
+        book.industryIdentifiers.find(
+          (item: { type: string; identifier: string }) =>
+            item.type === "ISBN_13",
+        )?.identifier ??
+        book.industryIdentifiers.find(
+          (item: { type: string; identifier: string }) =>
+            item.type === "ISBN_10",
+        )?.identifier ??
+        "",
+      authors: book.authors,
+      bookImage: [book.imageLinks.smallThumbnail, book.imageLinks.thumbnail],
+      categories: book.categories,
+      pageCount: book.pageCount,
+      publishedDate: book.publishedDate ? new Date(book.publishedDate) : null,
 
-    if (book.googleBookId) {
-      // THE BOOK IS A GOOGLE BOOK -- ONLY UPDATE USER INFO
-      setBook = await xata.db.Books.createOrUpdate(getBook?.xata_id, {
-        googleBookId: book.googleBookId,
-        readingProgress: userInfo.readingProgress,
-        readingFormat: userInfo.readingFormat,
-        startDate: userInfo.startDate ? new Date(userInfo.startDate) : null,
-        endDate: userInfo.endDate ? new Date(userInfo.endDate) : null,
-        rating: userInfo.rating,
-        comments: userInfo.comments,
-        user: userInfo.userEmail,
-        googleBook: userInfo.googleBook,
-      });
-    } else {
-      // THE BOOK IS NOT A GOOGLE BOOK -- UPDATE EVERYTHING
-      setBook = await xata.db.Books.createOrReplace(getBook?.xata_id, {
-        googleBookId: book.googleBookId,
-        title: book.title,
-        subtitle: book.subtitle,
-        description: book.description,
-        isbnType:
-          book.industryIdentifiers.find(
-            (item: { type: string }) => item.type === "ISBN_13",
-          )?.type ??
-          book.industryIdentifiers.find(
-            (item: { type: string }) => item.type === "ISBN_10",
-          )?.type ??
-          "",
-        isbn:
-          book.industryIdentifiers.find(
-            (item: { type: string; identifier: string }) =>
-              item.type === "ISBN_13",
-          )?.identifier ??
-          book.industryIdentifiers.find(
-            (item: { type: string; identifier: string }) =>
-              item.type === "ISBN_10",
-          )?.identifier ??
-          "",
-        authors: book.authors,
-        bookImage: [book.imageLinks.smallThumbnail, book.imageLinks.thumbnail],
-        categories: book.categories,
-        pageCount: book.pageCount,
-        publishedDate: book.publishedDate ? new Date(book.publishedDate) : null,
-
-        readingProgress: userInfo.readingProgress,
-        readingFormat: userInfo.readingFormat,
-        startDate: userInfo.startDate ? new Date(userInfo.startDate) : null,
-        endDate: userInfo.endDate ? new Date(userInfo.endDate) : null,
-        rating: userInfo.rating,
-        comments: userInfo.comments,
-        user: userInfo.userEmail,
-        googleBook: userInfo.googleBook,
-      });
-    }
+      readingProgress: userInfo.readingProgress,
+      readingFormat: userInfo.readingFormat,
+      startDate: userInfo.startDate ? new Date(userInfo.startDate) : null,
+      endDate: userInfo.endDate ? new Date(userInfo.endDate) : null,
+      rating: userInfo.rating,
+      comments: userInfo.comments,
+      user: userInfo.userEmail,
+      googleBook: userInfo.googleBook,
+    });
 
     if (!setBook) {
       return NextResponse.json(
