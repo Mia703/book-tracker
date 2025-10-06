@@ -75,46 +75,47 @@ export default function BookForm({ book, setCache }: BookFormProps) {
           }),
         });
 
-        const readingProgress = book.userInfo?.readingProgress;
-
-        // UPDATE THE BOOK'S USER INFORMATION
-        book.userInfo = {
-          readingProgress: values.readingProgress,
-          readingFormat: values.readingFormat,
-          startDate: values.startDate,
-          endDate: values.endDate,
-          rating: values.rating,
-          comments: values.comments,
-          userEmail: user.email,
-          googleBook: book.googleBookId ? true : false,
-        };
-
         const data = await response.json();
 
+        // DISPLAY CLIENT MESSAGE FROM XATA
+        setAlert({
+          messageType: data.message.messageType,
+          message: data.message.clientMessage,
+        });
+
         if (response.ok && data.message.messageType === "good") {
+          await new Promise((res) => setTimeout(res, 3000)); // WAIT 3 SECONDS
+
+          const readingProgress = book.userInfo?.readingProgress;
+
+          // UPDATE THE BOOK'S USER INFORMATION
+          book.userInfo = {
+            readingProgress: values.readingProgress,
+            readingFormat: values.readingFormat,
+            startDate: values.startDate,
+            endDate: values.endDate,
+            rating: values.rating,
+            comments: values.comments,
+            userEmail: user.email,
+            googleBook: book.googleBookId ? true : false,
+          };
+
           // UPDATE BOOK'S XATA INFORMATION
           const xataData = JSON.parse(data.message.xataData);
           book.userInfo.xata_createdat = xataData.xata_createdat;
           book.userInfo.xata_id = xataData.xata_id;
           book.userInfo.xata_updatedat = xataData.xata_updatedat;
           book.userInfo.xata_version = xataData.xata_version;
+
+          // ADD BOOK TO THE LIBRARY LIST
+          modifyLibraryCache(
+            setCache,
+            book.userInfo ? "update" : "add",
+            book,
+            readingProgress as keyof LibraryList,
+            values.readingProgress as keyof LibraryList,
+          );
         }
-
-        await new Promise((res) => setTimeout(res, 200));
-
-        // ADD BOOK TO CACHE
-        modifyLibraryCache(
-          setCache,
-          book.userInfo ? "update" : "add",
-          book,
-          readingProgress as keyof LibraryList,
-          values.readingProgress as keyof LibraryList,
-        );
-
-        setAlert({
-          messageType: data.message.messageType,
-          message: data.message.clientMessage,
-        });
       }
     },
   });

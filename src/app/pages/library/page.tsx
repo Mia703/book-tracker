@@ -33,8 +33,6 @@ export default function Library() {
     dnf: [],
   });
 
-  const router = useRouter();
-
   // CREATES A BLANK BOOK PLACEHOLDER TILL DATA LOADS
   const placeholder = [];
   for (let i = 0; i < 15; i++) {
@@ -50,6 +48,9 @@ export default function Library() {
     );
   }
 
+  const router = useRouter();
+  
+
   useEffect(() => {
     const userData = window.sessionStorage.getItem("user");
 
@@ -62,14 +63,64 @@ export default function Library() {
           "wishlist",
           userEmail,
         );
+
+        await new Promise((res) => setTimeout(res, 200)); // wait 0.2 seconds
+
+        setLibraryList({
+          wishlist: wishList,
+          reading: [],
+          finished: [],
+          dnf: [],
+        });
+
+        setIsLoading({
+          wishlist: false,
+          reading: true,
+          finished: true,
+          dnf: true,
+        });
+
         const readingList = await fetchBooksByReadingProgress(
           "reading",
           userEmail,
         );
+
+        await new Promise((res) => setTimeout(res, 200)); // wait 0.2 seconds
+        setLibraryList({
+          wishlist: wishList,
+          reading: readingList,
+          finished: [],
+          dnf: [],
+        });
+
+        setIsLoading({
+          wishlist: false,
+          reading: false,
+          finished: true,
+          dnf: true,
+        });
+
         const finishedList = await fetchBooksByReadingProgress(
           "finished",
           userEmail,
         );
+
+        await new Promise((res) => setTimeout(res, 200)); // wait 0.2 seconds
+
+        setLibraryList({
+          wishlist: [],
+          reading: [],
+          finished: finishedList,
+          dnf: [],
+        });
+
+        setIsLoading({
+          wishlist: false,
+          reading: false,
+          finished: false,
+          dnf: true,
+        });
+
         const dnfList = await fetchBooksByReadingProgress("dnf", userEmail);
 
         setLibraryList({
@@ -118,14 +169,16 @@ export default function Library() {
                   </div>
                 ) : libraryList && libraryList["wishlist"].length != 0 ? (
                   <div className="books-wrapper horizontal-media-scroller">
-                    {libraryList["wishlist"].map((data: BookType, index: number) => (
-                      <BookScreen
-                        key={index}
-                        screenTrigger={<Book key={index} book={data} />}
-                      >
-                        <BookInfo book={data} setCache={setLibraryList} />
-                      </BookScreen>
-                    ))}
+                    {libraryList["wishlist"].map(
+                      (data: BookType, index: number) => (
+                        <BookScreen
+                          key={index}
+                          screenTrigger={<Book key={index} book={data} />}
+                        >
+                          <BookInfo book={data} setCache={setLibraryList} />
+                        </BookScreen>
+                      ),
+                    )}
                   </div>
                 ) : (
                   <p className="text-center">
@@ -144,14 +197,16 @@ export default function Library() {
                   </div>
                 ) : libraryList && libraryList["reading"].length != 0 ? (
                   <div className="books-wrapper horizontal-media-scroller">
-                    {libraryList["reading"].map((data: BookType, index: number) => (
-                      <BookScreen
-                        key={index}
-                        screenTrigger={<Book key={index} book={data} />}
-                      >
-                        <BookInfo book={data} setCache={setLibraryList} />
-                      </BookScreen>
-                    ))}
+                    {libraryList["reading"].map(
+                      (data: BookType, index: number) => (
+                        <BookScreen
+                          key={index}
+                          screenTrigger={<Book key={index} book={data} />}
+                        >
+                          <BookInfo book={data} setCache={setLibraryList} />
+                        </BookScreen>
+                      ),
+                    )}
                   </div>
                 ) : (
                   <p className="text-center">
@@ -170,14 +225,16 @@ export default function Library() {
                   </div>
                 ) : libraryList && libraryList["finished"].length != 0 ? (
                   <div className="books-wrapper horizontal-media-scroller">
-                    {libraryList["finished"].map((data: BookType, index: number) => (
-                      <BookScreen
-                        key={index}
-                        screenTrigger={<Book key={index} book={data} />}
-                      >
-                        <BookInfo book={data} setCache={setLibraryList} />
-                      </BookScreen>
-                    ))}
+                    {libraryList["finished"].map(
+                      (data: BookType, index: number) => (
+                        <BookScreen
+                          key={index}
+                          screenTrigger={<Book key={index} book={data} />}
+                        >
+                          <BookInfo book={data} setCache={setLibraryList} />
+                        </BookScreen>
+                      ),
+                    )}
                   </div>
                 ) : (
                   <p className="text-center">
