@@ -81,6 +81,7 @@ export default function Home() {
                 id="email"
                 placeholder="Email*"
                 required
+                autoComplete="email"
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 value={formik.values.email}

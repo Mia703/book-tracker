@@ -1,5 +1,6 @@
 import { xata } from "@/app/pages/utils/xata";
 import { NextResponse } from "next/server";
+import { v4 as uuidv4 } from "uuid";
 
 export async function POST(request: Request) {
   try {
@@ -19,9 +20,33 @@ export async function POST(request: Request) {
       );
     }
 
-    // MATCHES userEmail AND [googleBookID OR (isbnTYP AND isbn)]
+    // IF BOOK IS NOT A GOOGLE BOOK AND DOES NOT HAVE AN isbn... CREATE ONE
+    // FALSE IF industryIdentifiers IS UNDEFINED, NULL, NOT AN ARRAY, ARRAY IS EMPTY, OR IF ALL ENTRIES HAVE EMPTY STRINGS
+    if (
+      !Array.isArray(book?.industryIdentifiers) ||
+      !book.industryIdentifiers.some(
+        (id: { type: string; identifier: string } | undefined) =>
+          id?.type?.trim() && id?.identifier?.trim(),
+      )
+    ) {
+      console.log("setBook: Book is not a googleBook and does not have a ISBN");
+      console.log("setBook: Creating fake ISBN");
+
+      const id = uuidv4();
+
+      const newIdentifier = {
+        type: "ISBN_13",
+        identifier: `fake-${id}`,
+      };
+
+      book.industryIdentifiers = [newIdentifier];
+    }
+
+    // MATCHES userEmail AND title AND subtitle AND [googleBookID OR (isbnTYP AND isbn)]
     const getBook = await xata.db.Books.filter({
       user: userInfo.userEmail,
+      title: book.title,
+      subtitle: book.subtitle,
       $any: [
         {
           isbnType: {
@@ -43,7 +68,7 @@ export async function POST(request: Request) {
       ],
     }).getFirst();
 
-    // THE BOOK IS NOT A GOOGLE BOOK -- UPDATE EVERYTHING
+    // UPDATE BOOK
     const setBook = await xata.db.Books.createOrReplace(getBook?.xata_id, {
       googleBookId: book.googleBookId,
       title: book.title,
@@ -113,12 +138,12 @@ export async function POST(request: Request) {
       { status: 200 },
     );
   } catch (error) {
-    console.log("setBook Error", error);
+    console.log("setBook", error);
     return NextResponse.json(
       {
         message: {
           developerMessage: "Internal server error.",
-          clientMessage: "There was an error. Please try again.",
+          clientMessage: `There was an error. ${error}. Please try again.`,
           messageType: "bad",
         },
       },

@@ -120,7 +120,7 @@ export default function BookInfo({ book, setCache }: BookInfoProps) {
           <p className="col-span-2 font-bold capitalize">
             Category
             <br />
-            <span className="font-normal">{book.categories?.join(",")}</span>
+            <span className="font-normal">{book.categories?.join(", ")}</span>
           </p>
         </div>
       </div>
