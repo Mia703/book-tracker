@@ -25,23 +25,6 @@ export default function Dropdown({ name, index, children }: DropdownProps) {
       >
         <div className="flex flex-row justify-between">
           <h2 className="capitalize text-lg font-bold">{name}</h2>
-
-          {/* FIXME: for dropdown of index 0 which starts out open */}
-          {index == 0 &&
-            (toggleTrigger ? (
-              <ChevronRight className="text-primary-dark-pink" />
-            ) : (
-              <ChevronDown className="text-primary-dark-pink" />
-              
-            ))}
-
-          {/* for all other drop downs that start off closed */}
-          {index > 0 &&
-            (toggleTrigger ? (
-              <ChevronRight className="text-primary-dark-pink" />
-            ) : (
-              <ChevronDown className="text-primary-dark-pink" />
-            ))}
         </div>
       </AccordionTrigger>
       <hr className="border-primary-dark-pink border-2" />

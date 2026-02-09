@@ -1,11 +1,11 @@
 import {
-  pgTable,
   bigserial,
-  text,
-  varchar,
   integer,
-  timestamp,
   pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  varchar,
 } from "drizzle-orm/pg-core";
 
 /** ============ ENUMS =  domain constraints */
@@ -44,11 +44,14 @@ export const books = pgTable("books", {
   id: bigserial("id", { mode: "number" }).primaryKey(),
   title: varchar("title", { length: 255 }).notNull(),
   subtitle: varchar("subtitle", { length: 255 }),
-  description: text("description"),
   authors: text("authors").array(),
+  description: text("description"),
   categories: text("categories").array(),
   isbn: varchar("isbn", { length: 32 }),
   bookImage: text("book_image"),
+  pageCount: integer("page_count"),
+  publishedDate: timestamp("published_date"),
+  publisher: varchar("publisher", { length: 255 }),
   userId: integer("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -57,14 +60,9 @@ export const books = pgTable("books", {
 
 export const readingProgress = pgTable("reading_progress", {
   id: bigserial("id", { mode: "number" }).primaryKey(),
-  pageCount: integer("page_count"),
-  publishedDate: timestamp("published_date"),
-  publisher: varchar("publisher", { length: 255 }),
-
   readingProgress: readingStatusEnum("reading_progress").notNull(),
-  readingFormat: readingFormatEnum("reading_format").notNull(),
   rating: ratingEnum("rating"),
-
+  readingFormat: readingFormatEnum("reading_format").notNull(),
   startDate: timestamp("start_date"),
   endDate: timestamp("end_date"),
   comments: text("comments"),

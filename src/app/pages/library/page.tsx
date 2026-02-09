@@ -1,37 +1,47 @@
 "use client";
-import Book from "@/app/components/Book";
-import BookInfo from "@/app/components/BookInfo";
-import BookScreen from "@/app/components/BookScreen";
 import Dropdown from "@/app/components/Dropdown";
 import MainGrid from "@/app/components/MainGrid";
-import SearchBar from "@/app/components/SearchBar";
-import { Book as BookType, LibraryList } from "@/app/types/types";
+import MainHeader from "@/app/components/MainHeader";
 import { Button } from "@/components/ui/button";
 import { Accordion } from "@radix-ui/react-accordion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { fetchBooksByReadingProgress } from "../utils/utils";
 
 export default function Library() {
-  const [loggedIn, setLoggedIn] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<{
-    wishlist: boolean;
-    reading: boolean;
-    finished: boolean;
-    dnf: boolean;
-  }>({
-    wishlist: true,
-    reading: true,
-    finished: true,
-    dnf: true,
-  });
+  const [loggedin, setLoggedIn] = useState<boolean>(false);
+  const [user, setUser] = useState<
+    | {
+        id: number;
+        firstName: string;
+        lastName: string;
+        email: string;
+        createdAt: string;
+      }
+    | undefined
+  >();
 
-  const [libraryList, setLibraryList] = useState<LibraryList>({
-    wishlist: [],
-    reading: [],
-    finished: [],
-    dnf: [],
-  });
+  const router = useRouter();
+
+  useEffect(() => {
+    const userData = window.sessionStorage.getItem("user");
+    if (userData) {
+      const user: {
+        id: number;
+        firstName: string;
+        lastName: string;
+        email: string;
+        createdAt: string;
+      } = JSON.parse(userData);
+
+      if (user.email != "") {
+        setLoggedIn(true);
+        setUser(user);
+      } else {
+        setLoggedIn(false);
+        setUser(undefined);
+      }
+    }
+  }, []);
 
   // CREATES A BLANK BOOK PLACEHOLDER TILL DATA LOADS
   const placeholder = [];
@@ -48,228 +58,52 @@ export default function Library() {
     );
   }
 
-  const router = useRouter();
-  
-
-  useEffect(() => {
-    const userData = window.sessionStorage.getItem("user");
-
-    if (userData) {
-      const user = JSON.parse(userData);
-      setLoggedIn(true);
-
-      async function getAllBooks(userEmail: string) {
-        const wishList = await fetchBooksByReadingProgress(
-          "wishlist",
-          userEmail,
-        );
-
-        await new Promise((res) => setTimeout(res, 200)); // wait 0.2 seconds
-
-        setLibraryList({
-          wishlist: wishList,
-          reading: [],
-          finished: [],
-          dnf: [],
-        });
-
-        setIsLoading({
-          wishlist: false,
-          reading: true,
-          finished: true,
-          dnf: true,
-        });
-
-        const readingList = await fetchBooksByReadingProgress(
-          "reading",
-          userEmail,
-        );
-
-        await new Promise((res) => setTimeout(res, 200)); // wait 0.2 seconds
-        setLibraryList({
-          wishlist: wishList,
-          reading: readingList,
-          finished: [],
-          dnf: [],
-        });
-
-        setIsLoading({
-          wishlist: false,
-          reading: false,
-          finished: true,
-          dnf: true,
-        });
-
-        const finishedList = await fetchBooksByReadingProgress(
-          "finished",
-          userEmail,
-        );
-
-        await new Promise((res) => setTimeout(res, 200)); // wait 0.2 seconds
-
-        setLibraryList({
-          wishlist: [],
-          reading: [],
-          finished: finishedList,
-          dnf: [],
-        });
-
-        setIsLoading({
-          wishlist: false,
-          reading: false,
-          finished: false,
-          dnf: true,
-        });
-
-        const dnfList = await fetchBooksByReadingProgress("dnf", userEmail);
-
-        setLibraryList({
-          wishlist: wishList,
-          reading: readingList,
-          finished: finishedList,
-          dnf: dnfList,
-        });
-
-        setIsLoading({
-          wishlist: false,
-          reading: false,
-          finished: false,
-          dnf: false,
-        });
-      }
-
-      getAllBooks(user.email);
-    } else {
-      setLoggedIn(false);
-    }
-  }, []);
-
   return (
     <MainGrid>
-      <SearchBar setCache={setLibraryList} />
-
-      {loggedIn ? (
+      {loggedin ? (
         <section
-          id="accordion-section"
+          id="library"
           className="col-span-4 md:col-span-6 lg:col-span-12"
         >
-          <div className="accordion-wrapper w-full">
-            <Accordion
-              type="single"
-              collapsible
-              defaultValue="accordion-item-1"
-            >
-              <Dropdown name="Wish List" index={0}>
-                {isLoading["wishlist"] ? (
-                  <div
-                    className="loading-wrapper horizontal-media-scroller"
-                    style={{ overflow: "hidden" }}
-                  >
-                    {placeholder}
-                  </div>
-                ) : libraryList && libraryList["wishlist"].length != 0 ? (
-                  <div className="books-wrapper horizontal-media-scroller">
-                    {libraryList["wishlist"].map(
-                      (data: BookType, index: number) => (
-                        <BookScreen
-                          key={index}
-                          screenTrigger={<Book key={index} book={data} />}
-                        >
-                          <BookInfo book={data} setCache={setLibraryList} />
-                        </BookScreen>
-                      ),
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-center">
-                    You&apos;re not reading any books yet!
-                  </p>
-                )}
-              </Dropdown>
+          <MainHeader user={user} />
 
-              <Dropdown name="Reading" index={1}>
-                {isLoading["reading"] ? (
-                  <div
-                    className="loading-wrapper horizontal-media-scroller"
-                    style={{ overflow: "hidden" }}
-                  >
-                    {placeholder}
-                  </div>
-                ) : libraryList && libraryList["reading"].length != 0 ? (
-                  <div className="books-wrapper horizontal-media-scroller">
-                    {libraryList["reading"].map(
-                      (data: BookType, index: number) => (
-                        <BookScreen
-                          key={index}
-                          screenTrigger={<Book key={index} book={data} />}
-                        >
-                          <BookInfo book={data} setCache={setLibraryList} />
-                        </BookScreen>
-                      ),
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-center">
-                    You&apos;re not reading any books yet!
-                  </p>
-                )}
-              </Dropdown>
+          <Accordion type="single" collapsible defaultValue="accordion-item-1">
+            <Dropdown name="Wish List" index={0}>
+              <div
+                className="loading-wrapper horizontal-media-scroller"
+                style={{ overflow: "hidden" }}
+              >
+                {placeholder}
+              </div>
+            </Dropdown>
 
-              <Dropdown name="Finished" index={2}>
-                {isLoading["finished"] ? (
-                  <div
-                    className="loading-wrapper horizontal-media-scroller"
-                    style={{ overflow: "hidden" }}
-                  >
-                    {placeholder}
-                  </div>
-                ) : libraryList && libraryList["finished"].length != 0 ? (
-                  <div className="books-wrapper horizontal-media-scroller">
-                    {libraryList["finished"].map(
-                      (data: BookType, index: number) => (
-                        <BookScreen
-                          key={index}
-                          screenTrigger={<Book key={index} book={data} />}
-                        >
-                          <BookInfo book={data} setCache={setLibraryList} />
-                        </BookScreen>
-                      ),
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-center">
-                    You&apos;re not reading any books!
-                  </p>
-                )}
-              </Dropdown>
+            <Dropdown name="Reading" index={1}>
+              <div
+                className="loading-wrapper horizontal-media-scroller"
+                style={{ overflow: "hidden" }}
+              >
+                {placeholder}
+              </div>
+            </Dropdown>
 
-              <Dropdown name="DNF" index={3}>
-                {isLoading["dnf"] ? (
-                  <div
-                    className="loading-wrapper horizontal-media-scroller"
-                    style={{ overflow: "hidden" }}
-                  >
-                    {placeholder}
-                  </div>
-                ) : libraryList && libraryList["dnf"].length != 0 ? (
-                  <div className="books-wrapper horizontal-media-scroller">
-                    {libraryList["dnf"].map((data: BookType, index: number) => (
-                      <BookScreen
-                        key={index}
-                        screenTrigger={<Book key={index} book={data} />}
-                      >
-                        <BookInfo book={data} setCache={setLibraryList} />
-                      </BookScreen>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-center">
-                    You&apos;ve read all your books!
-                  </p>
-                )}
-              </Dropdown>
-            </Accordion>
-          </div>
+            <Dropdown name="Finished" index={2}>
+              <div
+                className="loading-wrapper horizontal-media-scroller"
+                style={{ overflow: "hidden" }}
+              >
+                {placeholder}
+              </div>
+            </Dropdown>
+
+            <Dropdown name="DNF" index={3}>
+              <div
+                className="loading-wrapper horizontal-media-scroller"
+                style={{ overflow: "hidden" }}
+              >
+                {placeholder}
+              </div>
+            </Dropdown>
+          </Accordion>
         </section>
       ) : (
         <section
