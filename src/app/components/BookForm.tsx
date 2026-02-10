@@ -1,3 +1,4 @@
+import { addBookWithReadingProgress } from "@/actions/bookActionsRefactored";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,7 +26,7 @@ interface BookFormProps {
 }
 
 export default function BookForm({ user }: BookFormProps) {
-  const [alert, setAlert] = useState<boolean>(false);
+  const [alert, setAlert] = useState<string | undefined>("");
   const today = new Date().toISOString().slice(0, 10);
 
   const formik = useFormik({
@@ -52,10 +53,17 @@ export default function BookForm({ user }: BookFormProps) {
       },
     },
     // validationSchema: formValidation,
-    onSubmit: (values) => {
-      console.log("submitted");
-      console.log(values);
-      console.log(user);
+    onSubmit: async (values) => {
+      if (user) {
+        const response = await addBookWithReadingProgress(
+          values.bookInformation,
+          values.readerInformation,
+          user,
+        );
+        if (response.status == "failed") {
+          setAlert(response.clientMessage);
+        }
+      }
     },
   });
 
@@ -236,9 +244,9 @@ export default function BookForm({ user }: BookFormProps) {
             <SelectValue placeholder="Reading Format" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="eBook">E-book</SelectItem>
+            <SelectItem value="e-book">E-book</SelectItem>
             <SelectItem value="paper">Paper</SelectItem>
-            <SelectItem value="libraryLoan">Library Loan</SelectItem>
+            <SelectItem value="library loan">Library Loan</SelectItem>
             <SelectItem value="audio">Audio</SelectItem>
           </SelectContent>
         </Select>

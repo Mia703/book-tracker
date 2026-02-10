@@ -1,4 +1,5 @@
 "use client";
+import { getAllBooksByReadingStatus } from "@/actions/bookActions";
 import Dropdown from "@/app/components/Dropdown";
 import MainGrid from "@/app/components/MainGrid";
 import MainHeader from "@/app/components/MainHeader";
@@ -20,10 +21,37 @@ export default function Library() {
     | undefined
   >();
 
+  const [readingList, setReadingList] = useState<{
+            bookInformation: {
+              title: string;
+              subtitle: string;
+              authors: string[];
+              description: string;
+              categories: string[];
+              isbn: string;
+              bookImage: string;
+              pageCount: string;
+              publishedDate: Date;
+              publisher: string;
+            };
+            readerInformation: {
+              readingProgress: string;
+              rating: string;
+              readingFormat: string;
+              startDate: Date;
+              endDate: Date;
+              comments: string;
+            };
+          }[]>();
+  const [wishlist, setWishlist] = useState();
+  const [finsihedList, setFinishedList] = useState();
+  const [dnfList, setDnfList] = useState();
+
   const router = useRouter();
 
   useEffect(() => {
     const userData = window.sessionStorage.getItem("user");
+
     if (userData) {
       const user: {
         id: number;
@@ -40,6 +68,74 @@ export default function Library() {
         setLoggedIn(false);
         setUser(undefined);
       }
+      async function getAllBooks(user: {
+        id: number;
+        firstName: string;
+        lastName: string;
+        email: string;
+        createdAt: string;
+      }) {
+        const reading = await getAllBooksByReadingStatus(user, "reading");
+
+        if (reading) {
+          const r: {
+            bookInformation: {
+              title: string;
+              subtitle: string;
+              authors: string[];
+              description: string;
+              categories: string[];
+              isbn: string;
+              bookImage: string;
+              pageCount: string;
+              publishedDate: Date;
+              publisher: string;
+            };
+            readerInformation: {
+              readingProgress: string;
+              rating: string;
+              readingFormat: string;
+              startDate: Date;
+              endDate: Date;
+              comments: string;
+            };
+          }[] = JSON.parse(reading);
+          console.log("reading", r);
+          setReadingList(r);
+
+          // FIXME: fix why this isn't printing...
+          r.map((item, index: number) => (
+            console.log(item.bookInformation.title)
+          ))
+        }
+
+        // await new Promise((res) => setTimeout(res, 200)); // wait 0.2 sec
+
+        // const wishlist = await getAllBooksByReadingStatus(user, "wishlist");
+
+        // if (wishlist) {
+        //   const w = JSON.parse(wishlist);
+        //   setWishlist(w);
+        // }
+
+        // await new Promise((res) => setTimeout(res, 200)); // wait 0.2 sec
+
+        // const dnfList = await getAllBooksByReadingStatus(user, "dnf");
+
+        // if (dnfList) {
+        //   const d = JSON.parse(dnfList);
+        //   setDnfList(d);
+        // }
+
+        // const finishedList = await getAllBooksByReadingStatus(user, "finished");
+
+        // if (finishedList) {
+        //   const f = JSON.parse(finishedList);
+        //   setFinishedList(f);
+        // }
+      }
+
+      getAllBooks(user);
     }
   }, []);
 
@@ -78,12 +174,18 @@ export default function Library() {
             </Dropdown>
 
             <Dropdown name="Reading" index={1}>
-              <div
-                className="loading-wrapper horizontal-media-scroller"
-                style={{ overflow: "hidden" }}
-              >
-                {placeholder}
-              </div>
+              {readingList ? (
+                <div>{readingList.map((item, index: number) => (
+                  <p key={index}>{}</p>
+                ))}</div>
+              ) : (
+                <div
+                  className="loading-wrapper horizontal-media-scroller"
+                  style={{ overflow: "hidden" }}
+                >
+                  {placeholder}
+                </div>
+              )}
             </Dropdown>
 
             <Dropdown name="Finished" index={2}>
