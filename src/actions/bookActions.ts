@@ -153,7 +153,7 @@ export const getAllBooksByReadingStatus = async (
   },
   readingStatus: "reading" | "finished" | "dnf" | "wishlist",
 ) => {
-  const books = await db
+  const booksList = await db
     .select()
     .from(booksTable)
     .fullJoin(
@@ -162,13 +162,33 @@ export const getAllBooksByReadingStatus = async (
     )
     .where(eq(booksTable.userId, user.id));
 
-  if (books.length > 0) {
-    const filteredBooks = books.filter(
+  if (booksList.length > 0) {
+    booksList.map((book) => {
+      if (book.books == null || book.reading_progress == null) {
+        return {
+          status: "failed",
+          message: "Either book or reading progress is missing",
+          clientMessage: "Error getting all books for user",
+        };
+      }
+    });
+
+    const filteredBooksList = booksList.filter(
       (book) => book.reading_progress?.readingProgress == readingStatus,
     );
 
-    return JSON.stringify(filteredBooks);
+    return {
+      status: "success",
+      message: "Got all books by reading status for user.",
+      clientMessage: "Got all books",
+      books: JSON.stringify(filteredBooksList),
+    };
   }
+  return {
+    status: "failed",
+    message: "Either book or reading progress is missing",
+    clientMessage: "Error getting all books for user",
+  };
 };
 
 // ------ UPDATE

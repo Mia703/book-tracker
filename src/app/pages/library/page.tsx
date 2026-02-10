@@ -5,8 +5,18 @@ import MainGrid from "@/app/components/MainGrid";
 import MainHeader from "@/app/components/MainHeader";
 import { Button } from "@/components/ui/button";
 import { Accordion } from "@radix-ui/react-accordion";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import BookForm from "@/app/components/BookForm";
 
 export default function Library() {
   const [loggedin, setLoggedIn] = useState<boolean>(false);
@@ -21,28 +31,44 @@ export default function Library() {
     | undefined
   >();
 
-  const [readingList, setReadingList] = useState<{
-            bookInformation: {
-              title: string;
-              subtitle: string;
-              authors: string[];
-              description: string;
-              categories: string[];
-              isbn: string;
-              bookImage: string;
-              pageCount: string;
-              publishedDate: Date;
-              publisher: string;
-            };
-            readerInformation: {
-              readingProgress: string;
-              rating: string;
-              readingFormat: string;
-              startDate: Date;
-              endDate: Date;
-              comments: string;
-            };
-          }[]>();
+  const [readingList, setReadingList] = useState<
+    {
+      books: {
+        id: number;
+        title: string;
+        subtitle: string | null;
+        authors: string[] | null;
+        description: string | null;
+        categories: string[] | null;
+        isbn: string | null;
+        bookImage: string | null;
+        pageCount: number | null;
+        publishedDate: Date | null;
+        publisher: string | null;
+        userId: number;
+        createdAt: Date;
+      };
+      reading_progress: {
+        id: number;
+        readingProgress: "reading" | "finished" | "dnf" | "wishlist";
+        rating:
+          | "masterpiece"
+          | "great"
+          | "good"
+          | "average"
+          | "appalling"
+          | null;
+        readingFormat: "e-book" | "paper" | "library loan" | "audio";
+        startDate: Date | null;
+        endDate: Date | null;
+        comments: string | null;
+        bookId: number;
+        userId: number;
+        createdAt: Date;
+        updatedAt: Date;
+      };
+    }[]
+  >();
   const [wishlist, setWishlist] = useState();
   const [finsihedList, setFinishedList] = useState();
   const [dnfList, setDnfList] = useState();
@@ -68,6 +94,7 @@ export default function Library() {
         setLoggedIn(false);
         setUser(undefined);
       }
+
       async function getAllBooks(user: {
         id: number;
         firstName: string;
@@ -77,62 +104,46 @@ export default function Library() {
       }) {
         const reading = await getAllBooksByReadingStatus(user, "reading");
 
-        if (reading) {
-          const r: {
-            bookInformation: {
+        if (reading.status == "success" && reading.books) {
+          const readingList: {
+            books: {
+              id: number;
               title: string;
-              subtitle: string;
-              authors: string[];
-              description: string;
-              categories: string[];
-              isbn: string;
-              bookImage: string;
-              pageCount: string;
-              publishedDate: Date;
-              publisher: string;
+              subtitle: string | null;
+              authors: string[] | null;
+              description: string | null;
+              categories: string[] | null;
+              isbn: string | null;
+              bookImage: string | null;
+              pageCount: number | null;
+              publishedDate: Date | null;
+              publisher: string | null;
+              userId: number;
+              createdAt: Date;
             };
-            readerInformation: {
-              readingProgress: string;
-              rating: string;
-              readingFormat: string;
-              startDate: Date;
-              endDate: Date;
-              comments: string;
+            reading_progress: {
+              id: number;
+              readingProgress: "reading" | "finished" | "dnf" | "wishlist";
+              rating:
+                | "masterpiece"
+                | "great"
+                | "good"
+                | "average"
+                | "appalling"
+                | null;
+              readingFormat: "e-book" | "paper" | "library loan" | "audio";
+              startDate: Date | null;
+              endDate: Date | null;
+              comments: string | null;
+              bookId: number;
+              userId: number;
+              createdAt: Date;
+              updatedAt: Date;
             };
-          }[] = JSON.parse(reading);
-          console.log("reading", r);
-          setReadingList(r);
+          }[] = JSON.parse(reading.books);
 
-          // FIXME: fix why this isn't printing...
-          r.map((item, index: number) => (
-            console.log(item.bookInformation.title)
-          ))
+          setReadingList(readingList);
         }
-
-        // await new Promise((res) => setTimeout(res, 200)); // wait 0.2 sec
-
-        // const wishlist = await getAllBooksByReadingStatus(user, "wishlist");
-
-        // if (wishlist) {
-        //   const w = JSON.parse(wishlist);
-        //   setWishlist(w);
-        // }
-
-        // await new Promise((res) => setTimeout(res, 200)); // wait 0.2 sec
-
-        // const dnfList = await getAllBooksByReadingStatus(user, "dnf");
-
-        // if (dnfList) {
-        //   const d = JSON.parse(dnfList);
-        //   setDnfList(d);
-        // }
-
-        // const finishedList = await getAllBooksByReadingStatus(user, "finished");
-
-        // if (finishedList) {
-        //   const f = JSON.parse(finishedList);
-        //   setFinishedList(f);
-        // }
       }
 
       getAllBooks(user);
@@ -175,9 +186,60 @@ export default function Library() {
 
             <Dropdown name="Reading" index={1}>
               {readingList ? (
-                <div>{readingList.map((item, index: number) => (
-                  <p key={index}>{}</p>
-                ))}</div>
+                <div className="books-list-wrapper horizontal-media-scroller">
+                  {readingList.map((item, index: number) => (
+                    <Sheet key={index}>
+                      <SheetTrigger asChild>
+                        <div className="book-wrapper cursor-pointer">
+                          <div className="book-image-wrapper relative h-45 w-40">
+                            <Image
+                              src={
+                                "https://m.media-amazon.com/images/I/81ulYH+l8bL._SL1500_.jpg"
+                              }
+                              alt={item.books.title}
+                              fill={true}
+                              objectFit="contain"
+                            />
+                          </div>
+                          <p className="text-center font-semibold">
+                            {item.books.title}
+                          </p>
+                          {item.books.authors && (
+                            <p className="text-center text-sm">
+                              {item.books.authors[0]}
+                            </p>
+                          )}
+                        </div>
+                      </SheetTrigger>
+                      <SheetContent
+                        side="right"
+                        className="overflow-y-scroll p-6"
+                      >
+                        <SheetTitle className="text-center text-xl">
+                          <div className="book-image-wrapper relative h-45 w-40">
+                            <Image
+                              src={
+                                "https://m.media-amazon.com/images/I/81ulYH+l8bL._SL1500_.jpg"
+                              }
+                              alt={item.books.title}
+                              fill={true}
+                              objectFit="contain"
+                            />
+                          </div>
+                        </SheetTitle>
+                        {/* TODO: add prefilled book and reader information */}
+                        <BookForm user={user} />
+                        <SheetFooter className="p-0">
+                          <SheetClose asChild>
+                            <Button className="bg-primary-black w-full cursor-pointer">
+                              Close
+                            </Button>
+                          </SheetClose>
+                        </SheetFooter>
+                      </SheetContent>
+                    </Sheet>
+                  ))}
+                </div>
               ) : (
                 <div
                   className="loading-wrapper horizontal-media-scroller"
