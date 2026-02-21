@@ -27,16 +27,20 @@ export default function Home() {
       email: "",
     },
     onSubmit: async (values) => {
-      const response = await getUser(values.email);
+      try {
+        const response = await getUser(values.email);
 
-      if (response.status == "success") {
-        const user = response.result;
-        window.sessionStorage.setItem("user", JSON.stringify(user));
-        router.push("/pages/library");
-      } else {
-        if (response.clientMessage) {
-          setAlert(response.clientMessage);
+        if (response.status == "success") {
+          const user = response.result;
+          window.sessionStorage.setItem("user", JSON.stringify(user));
+          router.push("/pages/library");
+        } else {
+          setAlert(response.clientMessage || "Login failed");
         }
+
+      } catch(error) {
+        console.error("Login error", error)
+        setAlert("There was an unexpected error logging in. Please try again");
       }
     },
   });
@@ -54,7 +58,7 @@ export default function Home() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form action="" method="post" onSubmit={formik.handleSubmit}>
+            <form onSubmit={formik.handleSubmit}>
               <Label htmlFor="email" className="mb-2">
                 Email<span className="text-red-500">*</span>
               </Label>

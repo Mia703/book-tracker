@@ -11,7 +11,7 @@ export const getUser = async (email: string) => {
       .from(UsersTable)
       .where(eq(UsersTable.email, email));
 
-      const user = users[0];
+    const user = users[0];
 
     if (user && user.id) {
       return {
@@ -19,15 +19,14 @@ export const getUser = async (email: string) => {
         message: "Got user from database.",
         user: JSON.stringify(user),
       };
-    } else {
-      return {
-        status: "failed",
-        message: "Error getting user from database; user does not exist.",
-        clientMessage: "There was an error logging in, please try again.",
-      };
     }
+    return {
+      status: "failed",
+      message: "Error getting user from database; user does not exist.",
+      clientMessage: "There was an error logging in, please try again.",
+    };
   } catch (error) {
-    console.error("getUser", error);
+    console.error("getUser error:", error);
     return {
       status: "failed",
       message: "Error getting user from the database.",

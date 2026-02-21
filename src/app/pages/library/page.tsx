@@ -255,7 +255,7 @@ export default function Library() {
 
           setReadingList(readingList);
         }
-
+console.log(reading)
         // ---------------
         const wishlist = await getAllBooksByReadingStatus(user, "wishlist");
 
