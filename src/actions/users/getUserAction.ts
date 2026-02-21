@@ -25,7 +25,7 @@ export const getUser = async (email: string) => {
       };
     }
   } catch (error) {
-    console.log("getUser", error);
+    console.error("getUser", error);
     return {
       status: "failed",
       message: "Error getting user from the database.",
