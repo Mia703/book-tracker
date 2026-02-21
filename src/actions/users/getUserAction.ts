@@ -6,16 +6,18 @@ import { eq } from "drizzle-orm";
 
 export const getUser = async (email: string) => {
   try {
-    const user = await db
+    const users = await db
       .select()
       .from(UsersTable)
       .where(eq(UsersTable.email, email));
 
-    if (user[0].id > 0) {
+      const user = users[0];
+
+    if (user && user.id) {
       return {
         status: "success",
         message: "Got user from database.",
-        user: JSON.stringify(user[0]),
+        user: JSON.stringify(user),
       };
     } else {
       return {
