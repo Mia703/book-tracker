@@ -69,9 +69,120 @@ export default function Library() {
       };
     }[]
   >();
-  const [wishlist, setWishlist] = useState();
-  const [finsihedList, setFinishedList] = useState();
-  const [dnfList, setDnfList] = useState();
+  const [wishlist, setWishlist] = useState<
+    {
+      books: {
+        id: number;
+        title: string;
+        subtitle: string | null;
+        authors: string[] | null;
+        description: string | null;
+        categories: string[] | null;
+        isbn: string | null;
+        bookImage: string | null;
+        pageCount: number | null;
+        publishedDate: Date | null;
+        publisher: string | null;
+        userId: number;
+        createdAt: Date;
+      };
+      reading_progress: {
+        id: number;
+        readingProgress: "reading" | "finished" | "dnf" | "wishlist";
+        rating:
+          | "masterpiece"
+          | "great"
+          | "good"
+          | "average"
+          | "appalling"
+          | null;
+        readingFormat: "e-book" | "paper" | "library loan" | "audio";
+        startDate: Date | null;
+        endDate: Date | null;
+        comments: string | null;
+        bookId: number;
+        userId: number;
+        createdAt: Date;
+        updatedAt: Date;
+      };
+    }[]
+  >();
+  const [finsihedList, setFinishedList] = useState<
+    {
+      books: {
+        id: number;
+        title: string;
+        subtitle: string | null;
+        authors: string[] | null;
+        description: string | null;
+        categories: string[] | null;
+        isbn: string | null;
+        bookImage: string | null;
+        pageCount: number | null;
+        publishedDate: Date | null;
+        publisher: string | null;
+        userId: number;
+        createdAt: Date;
+      };
+      reading_progress: {
+        id: number;
+        readingProgress: "reading" | "finished" | "dnf" | "wishlist";
+        rating:
+          | "masterpiece"
+          | "great"
+          | "good"
+          | "average"
+          | "appalling"
+          | null;
+        readingFormat: "e-book" | "paper" | "library loan" | "audio";
+        startDate: Date | null;
+        endDate: Date | null;
+        comments: string | null;
+        bookId: number;
+        userId: number;
+        createdAt: Date;
+        updatedAt: Date;
+      };
+    }[]
+  >();
+  const [dnfList, setDnfList] = useState<
+    {
+      books: {
+        id: number;
+        title: string;
+        subtitle: string | null;
+        authors: string[] | null;
+        description: string | null;
+        categories: string[] | null;
+        isbn: string | null;
+        bookImage: string | null;
+        pageCount: number | null;
+        publishedDate: Date | null;
+        publisher: string | null;
+        userId: number;
+        createdAt: Date;
+      };
+      reading_progress: {
+        id: number;
+        readingProgress: "reading" | "finished" | "dnf" | "wishlist";
+        rating:
+          | "masterpiece"
+          | "great"
+          | "good"
+          | "average"
+          | "appalling"
+          | null;
+        readingFormat: "e-book" | "paper" | "library loan" | "audio";
+        startDate: Date | null;
+        endDate: Date | null;
+        comments: string | null;
+        bookId: number;
+        userId: number;
+        createdAt: Date;
+        updatedAt: Date;
+      };
+    }[]
+  >();
 
   const router = useRouter();
 
@@ -144,6 +255,140 @@ export default function Library() {
 
           setReadingList(readingList);
         }
+
+        // ---------------
+        const wishlist = await getAllBooksByReadingStatus(user, "wishlist");
+
+        if (wishlist.status == "success" && wishlist.books) {
+          const wishList: {
+            books: {
+              id: number;
+              title: string;
+              subtitle: string | null;
+              authors: string[] | null;
+              description: string | null;
+              categories: string[] | null;
+              isbn: string | null;
+              bookImage: string | null;
+              pageCount: number | null;
+              publishedDate: Date | null;
+              publisher: string | null;
+              userId: number;
+              createdAt: Date;
+            };
+            reading_progress: {
+              id: number;
+              readingProgress: "reading" | "finished" | "dnf" | "wishlist";
+              rating:
+                | "masterpiece"
+                | "great"
+                | "good"
+                | "average"
+                | "appalling"
+                | null;
+              readingFormat: "e-book" | "paper" | "library loan" | "audio";
+              startDate: Date | null;
+              endDate: Date | null;
+              comments: string | null;
+              bookId: number;
+              userId: number;
+              createdAt: Date;
+              updatedAt: Date;
+            };
+          }[] = JSON.parse(wishlist.books);
+
+          setWishlist(wishList);
+        }
+
+        // ---------------
+        const finished = await getAllBooksByReadingStatus(user, "finished");
+
+        if (finished.status == "success" && finished.books) {
+          const finishedList: {
+            books: {
+              id: number;
+              title: string;
+              subtitle: string | null;
+              authors: string[] | null;
+              description: string | null;
+              categories: string[] | null;
+              isbn: string | null;
+              bookImage: string | null;
+              pageCount: number | null;
+              publishedDate: Date | null;
+              publisher: string | null;
+              userId: number;
+              createdAt: Date;
+            };
+            reading_progress: {
+              id: number;
+              readingProgress: "reading" | "finished" | "dnf" | "wishlist";
+              rating:
+                | "masterpiece"
+                | "great"
+                | "good"
+                | "average"
+                | "appalling"
+                | null;
+              readingFormat: "e-book" | "paper" | "library loan" | "audio";
+              startDate: Date | null;
+              endDate: Date | null;
+              comments: string | null;
+              bookId: number;
+              userId: number;
+              createdAt: Date;
+              updatedAt: Date;
+            };
+          }[] = JSON.parse(finished.books);
+
+          setFinishedList(finishedList);
+        }
+
+        // ---------------
+        const dnf = await getAllBooksByReadingStatus(user, "dnf");
+
+        console.log("dnf", dnf)
+
+        if (dnf.status == "success" && dnf.books) {
+           const dnfList: {
+             books: {
+               id: number;
+               title: string;
+               subtitle: string | null;
+               authors: string[] | null;
+               description: string | null;
+               categories: string[] | null;
+               isbn: string | null;
+               bookImage: string | null;
+               pageCount: number | null;
+               publishedDate: Date | null;
+               publisher: string | null;
+               userId: number;
+               createdAt: Date;
+             };
+             reading_progress: {
+               id: number;
+               readingProgress: "reading" | "finished" | "dnf" | "wishlist";
+               rating:
+                 | "masterpiece"
+                 | "great"
+                 | "good"
+                 | "average"
+                 | "appalling"
+                 | null;
+               readingFormat: "e-book" | "paper" | "library loan" | "audio";
+               startDate: Date | null;
+               endDate: Date | null;
+               comments: string | null;
+               bookId: number;
+               userId: number;
+               createdAt: Date;
+               updatedAt: Date;
+             };
+           }[] = JSON.parse(dnf.books);
+
+           setDnfList(dnfList);
+        }
       }
 
       getAllBooks(user);
@@ -176,30 +421,21 @@ export default function Library() {
 
           <Accordion type="single" collapsible defaultValue="accordion-item-1">
             <Dropdown name="Wish List" index={0}>
-              <div
-                className="loading-wrapper horizontal-media-scroller"
-                style={{ overflow: "hidden" }}
-              >
-                {placeholder}
-              </div>
-            </Dropdown>
-
-            <Dropdown name="Reading" index={1}>
-              {readingList ? (
+              {wishlist ? (
                 <div className="books-list-wrapper horizontal-media-scroller">
-                  {readingList.map((item, index: number) => (
+                  {wishlist.map((item, index: number) => (
                     <Sheet key={index}>
                       <SheetTrigger asChild>
                         <div className="book-wrapper cursor-pointer">
                           <div className="book-image-wrapper relative h-45 w-40">
-                            <Image
-                              src={
-                                "https://m.media-amazon.com/images/I/81ulYH+l8bL._SL1500_.jpg"
-                              }
-                              alt={item.books.title}
-                              fill={true}
-                              objectFit="contain"
-                            />
+                            {item.books.bookImage && (
+                              <Image
+                                src={item.books.bookImage}
+                                alt={item.books.title}
+                                fill={true}
+                                objectFit="contain"
+                              />
+                            )}
                           </div>
                           <p className="text-center font-semibold">
                             {item.books.title}
@@ -217,14 +453,80 @@ export default function Library() {
                       >
                         <SheetTitle className="text-center text-xl">
                           <div className="book-image-wrapper relative h-45 w-40">
-                            <Image
-                              src={
-                                "https://m.media-amazon.com/images/I/81ulYH+l8bL._SL1500_.jpg"
-                              }
-                              alt={item.books.title}
-                              fill={true}
-                              objectFit="contain"
-                            />
+                            {item.books.bookImage && (
+                              <Image
+                                src={item.books.bookImage}
+                                alt={item.books.title}
+                                fill={true}
+                                objectFit="contain"
+                              />
+                            )}
+                          </div>
+                        </SheetTitle>
+                        {/* TODO: add prefilled book and reader information */}
+                        <BookForm user={user} />
+                        <SheetFooter className="p-0">
+                          <SheetClose asChild>
+                            <Button className="bg-primary-black w-full cursor-pointer">
+                              Close
+                            </Button>
+                          </SheetClose>
+                        </SheetFooter>
+                      </SheetContent>
+                    </Sheet>
+                  ))}
+                </div>
+              ) : (
+                <div
+                  className="loading-wrapper horizontal-media-scroller"
+                  style={{ overflow: "hidden" }}
+                >
+                  {placeholder}
+                </div>
+              )}
+            </Dropdown>
+
+            <Dropdown name="Reading" index={1}>
+              {readingList ? (
+                <div className="books-list-wrapper horizontal-media-scroller">
+                  {readingList.map((item, index: number) => (
+                    <Sheet key={index}>
+                      <SheetTrigger asChild>
+                        <div className="book-wrapper cursor-pointer">
+                          <div className="book-image-wrapper relative h-45 w-40">
+                            {item.books.bookImage && (
+                              <Image
+                                src={item.books.bookImage}
+                                alt={item.books.title}
+                                fill={true}
+                                objectFit="contain"
+                              />
+                            )}
+                          </div>
+                          <p className="text-center font-semibold">
+                            {item.books.title}
+                          </p>
+                          {item.books.authors && (
+                            <p className="text-center text-sm">
+                              {item.books.authors[0]}
+                            </p>
+                          )}
+                        </div>
+                      </SheetTrigger>
+                      <SheetContent
+                        side="right"
+                        className="overflow-y-scroll p-6"
+                      >
+                        <SheetTitle className="text-center text-xl">
+                          <div className="book-image-wrapper relative h-45 w-40">
+                            {item.books.bookImage && (
+                              <Image
+                                src={item.books.bookImage}
+                                alt={item.books.title}
+                                fill={true}
+                                objectFit="contain"
+                              />
+                            )}
                           </div>
                         </SheetTitle>
                         {/* TODO: add prefilled book and reader information */}
@@ -251,21 +553,135 @@ export default function Library() {
             </Dropdown>
 
             <Dropdown name="Finished" index={2}>
-              <div
-                className="loading-wrapper horizontal-media-scroller"
-                style={{ overflow: "hidden" }}
-              >
-                {placeholder}
-              </div>
+              {finsihedList ? (
+                <div className="books-list-wrapper horizontal-media-scroller">
+                  {finsihedList.map((item, index: number) => (
+                    <Sheet key={index}>
+                      <SheetTrigger asChild>
+                        <div className="book-wrapper cursor-pointer">
+                          <div className="book-image-wrapper relative h-45 w-40">
+                            {item.books.bookImage && (
+                              <Image
+                                src={item.books.bookImage}
+                                alt={item.books.title}
+                                fill={true}
+                                objectFit="contain"
+                              />
+                            )}
+                          </div>
+                          <p className="text-center font-semibold">
+                            {item.books.title}
+                          </p>
+                          {item.books.authors && (
+                            <p className="text-center text-sm">
+                              {item.books.authors[0]}
+                            </p>
+                          )}
+                        </div>
+                      </SheetTrigger>
+                      <SheetContent
+                        side="right"
+                        className="overflow-y-scroll p-6"
+                      >
+                        <SheetTitle className="text-center text-xl">
+                          <div className="book-image-wrapper relative h-45 w-40">
+                            {item.books.bookImage && (
+                              <Image
+                                src={item.books.bookImage}
+                                alt={item.books.title}
+                                fill={true}
+                                objectFit="contain"
+                              />
+                            )}
+                          </div>
+                        </SheetTitle>
+                        {/* TODO: add prefilled book and reader information */}
+                        <BookForm user={user} />
+                        <SheetFooter className="p-0">
+                          <SheetClose asChild>
+                            <Button className="bg-primary-black w-full cursor-pointer">
+                              Close
+                            </Button>
+                          </SheetClose>
+                        </SheetFooter>
+                      </SheetContent>
+                    </Sheet>
+                  ))}
+                </div>
+              ) : (
+                <div
+                  className="loading-wrapper horizontal-media-scroller"
+                  style={{ overflow: "hidden" }}
+                >
+                  {placeholder}
+                </div>
+              )}
             </Dropdown>
 
             <Dropdown name="DNF" index={3}>
-              <div
-                className="loading-wrapper horizontal-media-scroller"
-                style={{ overflow: "hidden" }}
-              >
-                {placeholder}
-              </div>
+              {dnfList ? (
+                <div className="books-list-wrapper horizontal-media-scroller">
+                  {dnfList.map((item, index: number) => (
+                    <Sheet key={index}>
+                      <SheetTrigger asChild>
+                        <div className="book-wrapper cursor-pointer">
+                          <div className="book-image-wrapper relative h-45 w-40">
+                            {item.books.bookImage && (
+                              <Image
+                                src={item.books.bookImage}
+                                alt={item.books.title}
+                                fill={true}
+                                objectFit="contain"
+                              />
+                            )}
+                          </div>
+                          <p className="text-center font-semibold">
+                            {item.books.title}
+                          </p>
+                          {item.books.authors && (
+                            <p className="text-center text-sm">
+                              {item.books.authors[0]}
+                            </p>
+                          )}
+                        </div>
+                      </SheetTrigger>
+                      <SheetContent
+                        side="right"
+                        className="overflow-y-scroll p-6"
+                      >
+                        <SheetTitle className="text-center text-xl">
+                          <div className="book-image-wrapper relative h-45 w-40">
+                            {item.books.bookImage && (
+                              <Image
+                                src={item.books.bookImage}
+                                alt={item.books.title}
+                                fill={true}
+                                objectFit="contain"
+                              />
+                            )}
+                          </div>
+                        </SheetTitle>
+                        {/* TODO: add prefilled book and reader information */}
+                        <BookForm user={user} />
+                        <SheetFooter className="p-0">
+                          <SheetClose asChild>
+                            <Button className="bg-primary-black w-full cursor-pointer">
+                              Close
+                            </Button>
+                          </SheetClose>
+                        </SheetFooter>
+                      </SheetContent>
+                    </Sheet>
+                  ))}
+                </div>
+              ) : (
+                <div
+                  className="loading-wrapper horizontal-media-scroller"
+                  style={{ overflow: "hidden" }}
+                >
+                  {placeholder}
+                </div>
+              )}
             </Dropdown>
           </Accordion>
         </section>

@@ -177,11 +177,27 @@ export const getAllBooksByReadingStatus = async (
       (book) => book.reading_progress?.readingProgress == readingStatus,
     );
 
+    const sortedBooksList = filteredBooksList.sort((a, b) => {
+      // if some items have no reading progress
+      if (!a.reading_progress) return 1;
+      if (!b.reading_progress) return -1;
+
+      const dateA = a.reading_progress?.createdAt
+        ? new Date(a.reading_progress.createdAt).getTime()
+        : 0;
+
+      const dateB = b.reading_progress?.createdAt
+        ? new Date(b.reading_progress.createdAt).getTime()
+        : 0;
+
+      return dateB - dateA; // descenting -- newest first
+    });
+
     return {
       status: "success",
       message: "Got all books by reading status for user.",
       clientMessage: "Got all books",
-      books: JSON.stringify(filteredBooksList),
+      books: JSON.stringify(sortedBooksList),
     };
   }
   return {
