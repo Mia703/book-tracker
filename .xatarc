@@ -1,6 +1,0 @@
-{
-  "databaseURL": "https://bookworm7572-s-workspace-e0s0n4.us-east-1.xata.sh/db/book-tracker-db",
-  "codegen": {
-    "output": "src/xata.ts"
-  }
-}

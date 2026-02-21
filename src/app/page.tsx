@@ -16,6 +16,7 @@ import { AlertCircleIcon } from "lucide-react";
 import MainGrid from "./components/MainGrid";
 import Link from "next/link";
 import { Label } from "@/components/ui/label";
+import { getUser } from "@/actions/userActions";
 
 export default function Home() {
   const [alert, setAlert] = useState<string>("");
@@ -26,34 +27,16 @@ export default function Home() {
       email: "",
     },
     onSubmit: async (values) => {
-      const response = await fetch("/pages/api/auth/login", {
-        method: "POST",
-        headers: { "Content-type": "application/json" },
-        body: JSON.stringify({
-          email: values.email,
-        }),
-      });
+      const response = await getUser(values.email);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        const user = JSON.parse(data.message.user);
-        window.sessionStorage.setItem(
-          "user",
-          JSON.stringify({
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: values.email,
-          }),
-        );
-
+      if (response.status == "success") {
+        const user = response.result;
+        window.sessionStorage.setItem("user", JSON.stringify(user));
         router.push("/pages/library");
       } else {
-        setAlert(data.message.clientMessage);
-        console.error(
-          `Error (${response.status})`,
-          data.message.developerMessage,
-        );
+        if (response.clientMessage) {
+          setAlert(response.clientMessage);
+        }
       }
     },
   });
@@ -62,7 +45,7 @@ export default function Home() {
     <MainGrid>
       <section
         id="login"
-        className="col-span-4 flex h-dvh flex-col content-center justify-center p-4 md:col-start-2 lg:col-start-5"
+        className="col-span-4 flex h-[90vh] flex-col content-center justify-center md:col-start-2 lg:col-start-5"
       >
         <Card className="bg-primary-light-pink">
           <CardHeader>
